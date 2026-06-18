@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Mundangaria · Mikronation</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --text: white;
+    --card: rgba(255, 255, 255, 0.12);
+    --border: rgba(255, 255, 255, 0.25);
+    --nav: rgba(0, 0, 0, 0.6);
+    --accent: #ffd966;
+    --card-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+
+  body.light {
+    --text: #111;
+    --card: rgba(255, 255, 255, 0.7);
+    --border: rgba(0, 0, 0, 0.2);
+    --nav: rgba(245, 245, 245, 0.85);
+  }
+
+  html, body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    color: var(--text);
+    background-color: #000;
+    overflow-x: hidden;
+  }
+
+  #bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .page {
+    display: none;
+    min-height: calc(100vh - 72px);
+    padding: 20px 16px 90px 16px;
+    animation: fadeIn 0.25s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .page.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+
+  .card {
+    background: var(--card);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--border);
+    border-radius: 32px;
+    padding: 20px 24px;
+    margin: 16px auto;
+    max-width: 880px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s;
+  }
+  .card:hover { transform: translateY(-3px); }
+
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: var(--nav);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+  }
+  .nav button {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    opacity: 0.8;
+    padding: 8px 8px;
+    border-radius: 40px;
+    transition: 0.2s;
+  }
+  .nav button:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+
+  .settingBtn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px 16px;
+    border-radius: 60px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+    text-align: center;
+  }
+  .settingBtn.active {
+    outline: 2px solid var(--accent);
+    background: rgba(255, 217, 102, 0.2);
+  }
+
+  .infoLink {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 18px;
+    border-radius: 40px;
+    background: rgba(255,255,255,0.1);
+    text-decoration: none;
+    color: var(--text);
+  }
+
+  img {
+    display: block;
+    margin: 20px auto;
+    border-radius: 24px;
+    max-width: 100%;
+    width: auto;
+    max-height: 320px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+  }
+
+  .symbol-desc {
+    text-align: center;
+    font-size: 0.95rem;
+    margin-top: -10px;
+    margin-bottom: 25px;
+    opacity: 0.9;
+    line-height: 1.5;
+    padding: 0 12px;
+  }
+
+  h1, h2, h3 { font-weight: 600; }
+
+  .war-bg-layer {
+    position: fixed;
+    inset: 0;
+    background: url("https://cdn.micro.wiki/en/7/74/War_flag_of_Mundangaria.jpg");
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px) brightness(0.35);
+    z-index: -1;
+  }
+  #war .overlay-dark {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    z-index: 0;
+  }
+
+  @media (max-width: 640px) {
+    .card { padding: 18px; }
+    .nav button { font-size: 11px; padding: 6px 4px; }
+  }
+  body.desktop-mode .nav { top: 0; bottom: auto; border-bottom: 1px solid var(--border); }
+  body.mobile-mode .card { max-width: 460px; margin-left: auto; margin-right: auto; }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="page active" id="home">
+  <div class="card">
+    <h1 id="homeTitle"></h1>
+    <p id="homeText" style="line-height: 1.5;"></p>
+    <h2 id="symbolsTitle" style="margin-top: 24px;"></h2>
+    <h3 id="flagText"></h3>
+    <img src="https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg" alt="Flagge der Republik Mundangaria">
+    <div id="flagDesc" class="symbol-desc"></div>
+    <h3 id="warFlagText" style="cursor:pointer;" onclick="openPage('war')"></h3>
+    <img src="https://cdn.micro.wiki/en/7/74/War_flag_of_Mundangaria.jpg" alt="Kriegsflagge von Mundangaria" onclick="openPage('war')" style="cursor:pointer;">
+    <div id="warFlagDesc" class="symbol-desc"></div>
+    <h3 id="coatText"></h3>
+    <img src="https://cdn.micro.wiki/en/0/06/Coat_of_arms_of_Mundangaria.jpg" alt="Wappen von Mundangaria">
+    <div id="coatDesc" class="symbol-desc"></div>
+    <h2 id="otherTitle" style="margin-top: 24px;"></h2>
+    <h3 id="molossiaName"></h3>
+    <p id="molossiaText"></p>
+    <a class="infoLink" id="molossiaLink" href="https://www.molossia.org/" target="_blank" rel="noreferrer"></a>
+  </div>
+</div>
+
+<div class="page" id="about">
+  <div class="card">
+    <h1 id="aboutTitle"></h1>
+    <p id="aboutText1"></p>
+    <p id="aboutText2" style="margin-top: 16px;"></p>
+    <p id="aboutText3" style="margin-top: 16px;"></p>
+    <p id="aboutText4" style="margin-top: 16px;"></p>
+    <p id="aboutText5" style="margin-top: 16px;"></p>
+    <p id="aboutText6" style="margin-top: 16px;"></p>
+    <p id="aboutText7" style="margin-top: 16px;"></p>
+    <p id="aboutText8" style="margin-top: 16px;"></p>
+  </div>
+</div>
+
+<div class="page" id="news">
+  <div class="card">
+    <h1 id="newsTitle"></h1>
+    <b id="news1" style="font-size: 1.2rem;"></b>
+    <p id="news1Text"></p>
+    <b id="news2" style="font-size: 1.2rem;"></b>
+    <p id="news2Text"></p>
+  </div>
+</div>
+
+<div class="page" id="lang">
+  <div class="card">
+    <h1 id="langTitle"></h1>
+    <button class="settingBtn" onclick="setLang('en')">English</button>
+    <button class="settingBtn" onclick="setLang('de')">Deutsch</button>
+    <button class="settingBtn" onclick="setLang('tr')">Türkçe</button>
+    <button class="settingBtn" onclick="setLang('bs')">Bosanski</button>
+    <button class="settingBtn" onclick="setLang('ar')">العربية</button>
+  </div>
+</div>
+
+<div class="page" id="settings">
+  <div class="card">
+    <h1 id="settingsTitle"></h1>
+    <button class="settingBtn" onclick="toggleTheme()" id="themeBtn">Theme</button>
+    <h2 id="bgSelectTitle" style="margin-top: 28px;"></h2>
+    <button class="settingBtn" id="bgMode1Btn" onclick="setBackgroundMode(1)"></button>
+    <button class="settingBtn" id="bgMode2Btn" onclick="setBackgroundMode(2)"></button>
+    <h2 id="viewTitle" style="margin-top: 28px;"></h2>
+    <button class="settingBtn" id="modeAutoBtn" onclick="setMode('auto')"></button>
+    <button class="settingBtn" id="modeDesktopBtn" onclick="setMode('desktop')"></button>
+    <button class="settingBtn" id="modeMobileBtn" onclick="setMode('mobile')"></button>
+  </div>
+</div>
+
+<div class="page" id="social">
+  <div class="card">
+    <h1 id="socialTitle"></h1>
+    <a href="https://www.tiktok.com/@mundangaria" target="_blank" style="text-decoration: none;">
+      <div class="card" style="text-align: center;">TikTok @mundangaria</div>
+    </a>
+  </div>
+</div>
+
+<div class="page" id="war">
+  <div class="war-bg-layer"></div>
+  <div class="overlay-dark"></div>
+  <div class="card" style="position: relative; z-index: 2;">
+    <h1 id="warTitle"></h1>
+    <h2 id="warHeader" style="color: #ffaa66; border-left: 4px solid #ffaa66; padding-left: 12px;"></h2>
+    <p id="warExtra" style="line-height: 1.6; margin-top: 16px;"></p>
+    <p id="warExtra2" style="line-height: 1.6; margin-top: 16px;"></p>
+    <p id="warExtra3" style="line-height: 1.6; margin-top: 16px; font-style: italic;"></p>
+    <button class="settingBtn" onclick="openPage('home')" id="backBtn" style="margin-top: 32px;"></button>
+  </div>
+</div>
+
+<div class="nav">
+  <button id="navHome" onclick="openPage('home')">Start</button>
+  <button id="navAbout" onclick="openPage('about')">Über</button>
+  <button id="navNews" onclick="openPage('news')">Neu</button>
+  <button id="navLang" onclick="openPage('lang')">Sprache</button>
+  <button id="navSettings" onclick="openPage('settings')">Einstell.</button>
+  <button id="navSocial" onclick="openPage('social')">Social</button>
+</div>
+
+<script>
+  // ======================= HINTERGRUND 1: PHYSIK-PARTIKEL =======================
+  let currentBgMode = 1;
+  let animationId = null;
+  let mouseX = -1000, mouseY = -1000, mousePresent = false, mouseAngle = 0;
+  const canvas = document.getElementById('bgCanvas');
+  let ctx = canvas.getContext('2d');
+  let width, height;
+  let flagImage = new Image();
+  flagImage.src = "https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg";
+  
+  function isLightTheme() { return document.body.classList.contains('light'); }
+  
+  function resizeCanvas() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+    if (currentBgMode === 1 && typeof initParticles1 !== 'undefined') initParticles1();
+  }
+  
+  function onMouseMove(e) { mouseX = e.clientX; mouseY = e.clientY; mousePresent = true; }
+  function onMouseLeave() { mousePresent = false; }
+  
+  function drawMouseGlow() {
+    if (!mousePresent) return;
+    const radius = 110;
+    ctx.save();
+    ctx.filter = `blur(20px)`;
+    for (let i = 0; i < 3; i++) {
+      const a = mouseAngle + (i * Math.PI * 2 / 3);
+      const offX = Math.cos(a) * 25, offY = Math.sin(a) * 25;
+      const grad = ctx.createRadialGradient(mouseX + offX, mouseY + offY, 12, mouseX, mouseY, radius);
+      const hue = i === 0 ? 0 : (i === 1 ? 120 : 240);
+      grad.addColorStop(0, `hsla(${hue}, 100%, 65%, 0.7)`);
+      grad.addColorStop(0.8, `rgba(0,0,0,0)`);
+      ctx.beginPath();
+      ctx.arc(mouseX, mouseY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+    ctx.filter = `blur(6px)`;
+    const core = ctx.createRadialGradient(mouseX, mouseY, 5, mouseX, mouseY, 45);
+    core.addColorStop(0, `hsla(${(mouseAngle * 30) % 360}, 100%, 70%, 0.8)`);
+    core.addColorStop(1, `rgba(255,255,255,0.1)`);
+    ctx.beginPath();
+    ctx.arc(mouseX, mouseY, 45, 0, Math.PI * 2);
+    ctx.fillStyle = core;
+    ctx.fill();
+    ctx.filter = 'none';
+    ctx.restore();
+  }
+  
+  let particles1 = [];
+  const PARTICLE_COUNT = 200;
+  class Particle {
+    constructor(x, y, vx, vy) {
+      this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+      this.size = Math.random() * 3 + 1.5;
+      this.baseHue = Math.floor(Math.random() * 360);
+    }
+  }
+  function initParticles1() {
+    particles1 = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++)
+      particles1.push(new Particle(Math.random() * width, Math.random() * height, (Math.random() - 0.5) * 0.6, (Math.random() - 0.5) * 0.6));
+  }
+  function updateParticles1() {
+    const rad = 130, force = 0.7;
+    for (let p of particles1) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) { p.x = 0; p.vx = Math.abs(p.vx) * 0.9; }
+      if (p.x > width) { p.x = width; p.vx = -Math.abs(p.vx) * 0.9; }
+      if (p.y < 0) { p.y = 0; p.vy = Math.abs(p.vy) * 0.9; }
+      if (p.y > height) { p.y = height; p.vy = -Math.abs(p.vy) * 0.9; }
+      p.vx *= 0.99; p.vy *= 0.99;
+      if (mousePresent && mouseX > 0 && mouseY > 0) {
+        const dx = p.x - mouseX, dy = p.y - mouseY, dist = Math.hypot(dx, dy);
+        if (dist < rad && dist > 0.1) {
+          const f = (rad - dist) / rad * force;
+          const ang = Math.atan2(dy, dx);
+          p.vx += Math.cos(ang) * f;
+          p.vy += Math.sin(ang) * f;
+        }
+      }
+      p.vx += (Math.random() - 0.5) * 0.04;
+      p.vy += (Math.random() - 0.5) * 0.04;
+      const maxS = 2.2;
+      if (Math.abs(p.vx) > maxS) p.vx = p.vx > 0 ? maxS : -maxS;
+      if (Math.abs(p.vy) > maxS) p.vy = p.vy > 0 ? maxS : -maxS;
+    }
+  }
+  function drawBackground1() {
+    if (isLightTheme()) {
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#e0e5f0'); grad.addColorStop(1, '#c8d0e0');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(255,255,245,0.2)'; ctx.fillRect(0, 0, width, height);
+    } else {
+      const grad = ctx.createLinearGradient(0, 0, width, height);
+      grad.addColorStop(0, '#0a0a1a'); grad.addColorStop(1, '#101020');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = 'rgba(30, 40, 70, 0.15)'; ctx.fillRect(0, 0, width, height);
+    }
+  }
+  function drawParticles1() {
+    for (let p of particles1) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fillStyle = isLightTheme() ? `hsla(${p.baseHue}, 70%, 50%, 0.7)` : `hsla(${p.baseHue}, 85%, 65%, 0.8)`;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = isLightTheme() ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,200,0.5)';
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+  function drawConnections1() {
+    for (let i = 0; i < particles1.length; i++) {
+      for (let j = i+1; j < particles1.length; j++) {
+        const dx = particles1[i].x - particles1[j].x, dy = particles1[i].y - particles1[j].y, dist = Math.hypot(dx, dy);
+        if (dist < 85) {
+          ctx.beginPath();
+          ctx.moveTo(particles1[i].x, particles1[i].y);
+          ctx.lineTo(particles1[j].x, particles1[j].y);
+          const alpha = isLightTheme() ? 0.15 : 0.1;
+          ctx.strokeStyle = `rgba(80, 100, 150, ${alpha * (1 - dist/85)})`;
+          ctx.lineWidth = 0.7;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+  function animateBackground1() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, width, height);
+    drawBackground1();
+    updateParticles1();
+    drawConnections1();
+    drawParticles1();
+    drawMouseGlow();
+    mouseAngle += 0.02;
+    animationId = requestAnimationFrame(animateBackground1);
+  }
+  function startBackground1() { initParticles1(); animateBackground1(); }
+  
+  // ======================= HINTERGRUND 2: VERSCHWOMMENE FLAGGE =======================
+  function animateBackground2() {
+    if (!ctx) return;
+    ctx.clearRect(0, 0, width, height);
+    if (flagImage.complete && flagImage.naturalWidth > 0) {
+      ctx.filter = 'blur(12px)';
+      ctx.drawImage(flagImage, 0, 0, width, height);
+      ctx.filter = 'none';
+    } else {
+      ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, width, height);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, width, height);
+    drawMouseGlow();
+    mouseAngle += 0.02;
+    animationId = requestAnimationFrame(animateBackground2);
+  }
+  function startBackground2() { animateBackground2(); }
+  
+  function stopCurrentAnimation() { if (animationId) { cancelAnimationFrame(animationId); animationId = null; } }
+  
+  function setBackgroundMode(mode) {
+    currentBgMode = mode;
+    localStorage.setItem("bgMode", mode);
+    stopCurrentAnimation();
+    if (mode === 1) startBackground1();
+    else startBackground2();
+    document.getElementById("bgMode1Btn")?.classList.toggle("active", mode === 1);
+    document.getElementById("bgMode2Btn")?.classList.toggle("active", mode === 2);
+  }
+  
+  // ======================= MEHRSPRACHIGE INHALTE =======================
+  const data = {
+    en: {
+      homeTitle: "Welcome to Mundangaria",
+      homeText: "The Republic of Mundangaria is a micronation created on 10 September 2025 and located in Germany, Baden-Württemberg, Stuttgart. It consists of a small community of one inhabitant and four members, and is ruled by the 'Plor Ochtir in Mundangaria' – the three fathers of Mundangaria.",
+      symbolsTitle: "Symbols of Mundangaria",
+      flagText: "National Flag",
+      warFlagText: "War Flag",
+      coatText: "Coat of Arms",
+      flagDesc: "The Mundangarian flag features three colors, each with a profound meaning: Blue symbolizes freedom, as vast as the sky. Red represents the courage of the Mundangarian people. Green reflects Islam, as Mundangaria is a Muslim micronation. The three central symbols – two crescents and a star – represent Islam in combination with the green color, while also honoring the three founders of Mundangaria (the 'Plor Ochtir in Mundangaria').",
+      warFlagDesc: "The Mundangarian war flag is raised exclusively in times of conflict between micronations or sovereign states. Black embodies our fearlessness – we will defend our micronation under any circumstances. Red represents the courage we possess when fighting for Mundangaria.",
+      coatDesc: "The coat of arms of Mundangaria features an orangutan, which is also the national animal. It symbolizes the calmness, intelligence, and strength of our nation.",
+      newsTitle: "Official News",
+      news1: "Foundation Anniversary",
+      news1Text: "Mundangaria continues to grow and expand its diplomatic relations within the micronational community.",
+      news2: "Digital Presence",
+      news2Text: "Our official website is now online and will be continuously updated in real time!",
+      settings: "Settings",
+      social: "Social Media",
+      lang: "Language",
+      navHome: "Home",
+      navAbout: "About",
+      navNews: "News",
+      navLang: "Language",
+      navSettings: "Settings",
+      navSocial: "Social",
+      viewTitle: "Display Mode",
+      modeAuto: "Auto (Responsive)",
+      modeDesktop: "Desktop Layout",
+      modeMobile: "Mobile Layout",
+      bgSelectTitle: "Background Style",
+      bgMode1: "Background 1 (Physics Particles)",
+      bgMode2: "Background 2 (Blurred Flag)",
+      warTitle: "The True Reason for Our Founding",
+      warHeader: "CLASSIFIED DOCUMENT · DIPLOMATIC MEMO",
+      warExtra: "The true reason we founded Mundangaria is twofold: firstly, it began as a project, and secondly, it serves security purposes.",
+      warExtra2: "By 'security purposes,' we mean the following: should a war break out between Germany (where we are located) and another nation, and German territory near us be lost – a scenario in which we could independently secede from Germany – we would remain predominantly neutral during this period, while leaning toward the German side.",
+      warExtra3: "Even though such scenarios are highly unlikely, one should always be prepared!",
+      back: "Return to Home",
+      aboutTitle: "About Mundangaria",
+      aboutText1: "The Republic of Mundangaria was founded on September 10, 2025, in Stuttgart, Germany.",
+      aboutText2: "Mundangaria is governed by three individuals: the 'Plor Ochtir in Mundangaria.' This name originates from the native language and translates to 'The three fathers of Mundangaria.'",
+      aboutText3: "Our micronation is a peaceful community that values freedom, creativity, and mutual respect. As a Muslim micronation, Islamic values play a central role in our daily lives.",
+      aboutText4: "Mundangaria does not support fascism or communism. Our path is one of independence, peace, and self-determination.",
+      aboutText5: "Two languages are spoken in Mundangaria: German and Mundangarian. The Mundangarian language is the native tongue of our micronation and is used during official ceremonies and cultural events.",
+      aboutText6: "The Euro (€) serves as the official currency and means of payment in Mundangaria. All trade and financial transactions are conducted in Euros.",
+      aboutText7: "Population: 1 resident and 4 members. Together, we form a small yet proud community that works collectively for the future of Mundangaria.",
+      aboutText8: "Mundangaria sees itself as a hub for cultural exchange and friendly relations with other micronations worldwide. We take pride in our independence and our unique identity."
+    },
+    de: {
+      homeTitle: "Willkommen in Mundangaria",
+      homeText: "Die Republik Mundangaria ist eine Mikronation, die am 10. September 2025 gegründet wurde und sich in Stuttgart, Baden-Württemberg, Deutschland, befindet. Sie besteht aus einer kleinen Gemeinschaft von einem Einwohner und vier Mitgliedern und wird von den 'Plor Ochtir in Mundangaria' regiert – den drei Vätern von Mundangaria.",
+      symbolsTitle: "Symbole von Mundangaria",
+      flagText: "Nationalflagge",
+      warFlagText: "Kriegsflagge",
+      coatText: "Wappen",
+      flagDesc: "Die mundangarische Flagge hat drei Farben, die jeweils eine tiefe Bedeutung tragen: Blau symbolisiert die Freiheit, so weit wie der Himmel. Rot steht für den Mut der Mundangarier. Grün repräsentiert den Islam, da Mundangaria eine muslimische Mikronation ist. Die drei zentralen Symbole – zwei Mondsicheln und ein Stern – repräsentieren den Islam in Kombination mit der grünen Farbe und ehren gleichzeitig die drei Gründer von Mundangaria (die 'Plor Ochtir in Mundangaria').",
+      warFlagDesc: "Die mundangarische Kriegsflagge wird ausschließlich in Zeiten von Konflikten zwischen Mikronationen oder souveränen Staaten gehisst. Schwarz verkörpert unsere Furchtlosigkeit – wir werden unsere Mikronation unter allen Umständen verteidigen. Rot repräsentiert den Mut, den wir besitzen, wenn wir für Mundangaria kämpfen.",
+      coatDesc: "Das Wappen von Mundangaria zeigt einen Orang-Utan, der auch das Nationaltier ist. Es symbolisiert die Ruhe, Intelligenz und Stärke unserer Nation.",
+      newsTitle: "Offizielle Neuigkeiten",
+      news1: "Gründungsjubiläum",
+      news1Text: "Mundangaria entwickelt sich stetig weiter und baut seine diplomatischen Beziehungen innerhalb der Mikronationsgemeinschaft aus.",
+      news2: "Digitale Präsenz",
+      news2Text: "Unsere offizielle Website ist jetzt online und wird kontinuierlich in Echtzeit aktualisiert!",
+      settings: "Einstellungen",
+      social: "Soziale Medien",
+      lang: "Sprache",
+      navHome: "Start",
+      navAbout: "Über",
+      navNews: "Neu",
+      navLang: "Sprache",
+      navSettings: "Einstell.",
+      navSocial: "Social",
+      viewTitle: "Anzeigemodus",
+      modeAuto: "Automatisch (Responsive)",
+      modeDesktop: "Desktop-Modus",
+      modeMobile: "Mobile-Modus",
+      bgSelectTitle: "Hintergrundstil",
+      bgMode1: "Hintergrund 1 (Physik-Partikel)",
+      bgMode2: "Hintergrund 2 (Verschwommene Flagge)",
+      warTitle: "Der wahre Grund unserer Gründung",
+      warHeader: "GEHEIME AKTE · DIPLOMATISCHES MEMO",
+      warExtra: "Der wahre Grund, warum wir Mundangaria gegründet haben, ist zweigeteilt: Erstens begann es als Projekt, und zweitens dient es Sicherheitszwecken.",
+      warExtra2: "Mit 'Sicherheitszwecken' ist Folgendes gemeint: Sollte es zu einem Krieg zwischen Deutschland (wo wir uns befinden) und einem anderen Land kommen und deutsches Territorium in unserer Nähe verloren gehen – ein Szenario, in dem wir uns unabhängig von Deutschland erklären könnten –, würden wir in dieser Zeit überwiegend neutral bleiben, uns jedoch eher auf die deutsche Seite stellen.",
+      warExtra3: "Auch wenn solche Szenarien äußerst unwahrscheinlich sind, sollte man stets vorbereitet sein!",
+      back: "Zurück zur Startseite",
+      aboutTitle: "Über Mundangaria",
+      aboutText1: "Die Republik Mundangaria wurde am 10. September 2025 in Stuttgart, Deutschland, gegründet.",
+      aboutText2: "Mundangaria wird von drei Personen regiert: den 'Plor Ochtir in Mundangaria'. Dieser Name stammt aus der Landessprache und bedeutet 'Die drei Väter von Mundangaria'.",
+      aboutText3: "Unsere Mikronation ist eine friedliche Gemeinschaft, die Freiheit, Kreativität und gegenseitigen Respekt schätzt. Als muslimische Mikronation spielen islamische Werte eine zentrale Rolle in unserem Alltag.",
+      aboutText4: "Mundangaria unterstützt weder Faschismus noch Kommunismus. Unser Weg ist einer der Unabhängigkeit, des Friedens und der Selbstbestimmung.",
+      aboutText5: "In Mundangaria werden zwei Sprachen gesprochen: Deutsch und Mundangarisch. Die mundangarische Sprache ist die Landessprache unserer Mikronation und wird bei offiziellen Zeremonien und kulturellen Veranstaltungen verwendet.",
+      aboutText6: "Der Euro (€) dient als offizielle Währung und Zahlungsmittel in Mundangaria. Der gesamte Handel und alle Finanztransaktionen werden in Euro abgewickelt.",
+      aboutText7: "Bevölkerung: 1 Einwohner und 4 Mitglieder. Gemeinsam bilden wir eine kleine, aber stolze Gemeinschaft, die gemeinsam für die Zukunft von Mundangaria arbeitet.",
+      aboutText8: "Mundangaria versteht sich als Ort des kulturellen Austauschs und freundschaftlicher Beziehungen zu anderen Mikronationen weltweit. Wir sind stolz auf unsere Unabhängigkeit und unsere einzigartige Identität."
+    },
+    tr: {
+      homeTitle: "Mundangaria'ya Hoş Geldiniz",
+      homeText: "Mundangaria Cumhuriyeti, 10 Eylül 2025'te Almanya'nın Stuttgart kentinde kurulmuş bir mikronasyondur. Bir sakini ve dört üyesi olan küçük bir topluluktan oluşur ve 'Plor Ochtir in Mundangaria' – Mundangaria'nın üç babası tarafından yönetilmektedir.",
+      symbolsTitle: "Mundangaria'nın Sembolleri",
+      flagText: "Ulusal Bayrak",
+      warFlagText: "Savaş Sancağı",
+      coatText: "Arma",
+      flagDesc: "Mundangaria bayrağında her biri derin anlam taşıyan üç renk bulunur: Mavi, gökyüzü kadar geniş özgürlüğü simgeler. Kırmızı, Mundangaria halkının cesaretini temsil eder. Yeşil, Mundangaria'nın Müslüman bir mikronasyon olması nedeniyle İslam'ı yansıtır. Ortadaki üç sembol – iki hilal ve bir yıldız – yeşil renkle birlikte İslam'ı temsil eder ve aynı zamanda Mundangaria'nın üç kurucusunu ('Plor Ochtir in Mundangaria') onurlandırır.",
+      warFlagDesc: "Mundangaria savaş bayrağı, yalnızca mikronasyonlar veya egemen devletler arasındaki çatışma zamanlarında göndere çekilir. Siyah, korkusuzluğumuzu simgeler – mikronasyonumuzu her koşulda savunacağız. Kırmızı, Mundangaria için savaşırken sahip olduğumuz cesareti temsil eder.",
+      coatDesc: "Mundangaria arması, aynı zamanda ulusal hayvan olan orangutanı gösterir. Bu, ulusumuzun sakinliğini, zekâsını ve gücünü simgeler.",
+      newsTitle: "Resmî Haberler",
+      news1: "Kuruluş Yıl Dönümü",
+      news1Text: "Mundangaria büyümeye ve mikronasyon topluluğu içindeki diplomatik ilişkilerini genişletmeye devam ediyor.",
+      news2: "Dijital Varlık",
+      news2Text: "Resmî web sitemiz artık çevrimiçi ve gerçek zamanlı olarak sürekli güncellenecek!",
+      settings: "Ayarlar",
+      social: "Sosyal Medya",
+      lang: "Dil",
+      navHome: "Ana Sayfa",
+      navAbout: "Hakkında",
+      navNews: "Haber",
+      navLang: "Dil",
+      navSettings: "Ayarlar",
+      navSocial: "Sosyal",
+      viewTitle: "Görünüm Modu",
+      modeAuto: "Otomatik (Duyarlı)",
+      modeDesktop: "Masaüstü Düzeni",
+      modeMobile: "Mobil Düzen",
+      bgSelectTitle: "Arka Plan Stili",
+      bgMode1: "Arka Plan 1 (Fizik Parçacıkları)",
+      bgMode2: "Arka Plan 2 (Bulanık Bayrak)",
+      warTitle: "Kuruluşumuzun Gerçek Nedeni",
+      warHeader: "GİZLİ DOSYA · DİPLOMATİK MEMO",
+      warExtra: "Mundangaria'yı kurmamızın gerçek nedeni iki yönlüdür: Birincisi, bir proje olarak başladı; ikincisi, güvenlik amaçlarına hizmet eder.",
+      warExtra2: "'Güvenlik amaçları' ile şu kastedilmektedir: Almanya (bulunduğumuz yer) ile başka bir ülke arasında savaş çıkarsa ve yakınımızdaki Alman toprakları kaybedilirse – Almanya'dan bağımsız olarak ayrılabileceğimiz bir senaryo – bu süre zarfında ağırlıklı olarak tarafsız kalır, ancak Alman tarafına yakın dururuz.",
+      warExtra3: "Bu tür senaryolar çok düşük ihtimal olsa bile, her zaman hazırlıklı olunmalıdır!",
+      back: "Ana Sayfaya Dön",
+      aboutTitle: "Mundangaria Hakkında",
+      aboutText1: "Mundangaria Cumhuriyeti, 10 Eylül 2025'te Almanya'nın Stuttgart kentinde kuruldu.",
+      aboutText2: "Mundangaria üç kişi tarafından yönetilmektedir: 'Plor Ochtir in Mundangaria'. Bu isim yerel dilden gelir ve 'Mundangaria'nın üç babası' anlamına gelir.",
+      aboutText3: "Mikronasyonumuz, özgürlüğe, yaratıcılığa ve karşılıklı saygıya değer veren barışçıl bir topluluktur. Müslüman bir mikronasyon olarak İslami değerler günlük hayatımızda merkezi bir rol oynar.",
+      aboutText4: "Mundangaria faşizmi veya komünizmi desteklemez. Yolumuz bağımsızlık, barış ve kendi kaderini tayin yoludur.",
+      aboutText5: "Mundangaria'da iki dil konuşulur: Almanca ve Mundangarca. Mundangarca dili, mikronasyonumuzun ana dilidir ve resmî törenlerde ve kültürel etkinliklerde kullanılır.",
+      aboutText6: "Euro (€), Mundangaria'da resmî para birimi ve ödeme aracı olarak hizmet eder. Tüm ticaret ve finansal işlemler Euro üzerinden yürütülür.",
+      aboutText7: "Nüfus: 1 sakin ve 4 üye. Birlikte, Mundangaria'nın geleceği için ortaklaşa çalışan küçük ama gururlu bir topluluk oluşturuyoruz.",
+      aboutText8: "Mundangaria, dünya çapındaki diğer mikronasyonlarla kültürel alışveriş ve dostane ilişkiler için bir merkez olarak görür. Bağımsızlığımız ve eşsiz kimliğimizle gurur duyuyoruz."
+    },
+    bs: {
+      homeTitle: "Dobrodošli u Mundangariju",
+      homeText: "Republika Mundangaria je mikronacija osnovana 10. septembra 2025. godine, smještena u Stuttgartu, Baden-Württemberg, Njemačka. Sastoji se od male zajednice od jednog stanovnika i četiri člana, a njome upravljaju 'Plor Ochtir in Mundangaria' – tri oca Mundangarije.",
+      symbolsTitle: "Simboli Mundangarije",
+      flagText: "Nacionalna Zastava",
+      warFlagText: "Ratna Zastava",
+      coatText: "Grb",
+      flagDesc: "Mundangarijska zastava ima tri boje, svaka s dubokim značenjem: Plava simbolizira slobodu, prostranu poput neba. Crvena predstavlja hrabrost mundangarijskog naroda. Zelena odražava islam, jer je Mundangaria muslimanska mikronacija. Tri centralna simbola – dva polumjeseca i zvijezda – predstavljaju islam u kombinaciji sa zelenom bojom, dok istovremeno odaju počast trima osnivačima Mundangarije ('Plor Ochtir in Mundangaria').",
+      warFlagDesc: "Mundangarijska ratna zastava podiže se isključivo u vrijeme sukoba između mikronacija ili suverenih država. Crna utjelovljuje našu neustrašivost – branit ćemo našu mikronaciju pod bilo kojim okolnostima. Crvena predstavlja hrabrost koju posjedujemo kada se borimo za Mundangariju.",
+      coatDesc: "Grb Mundangarije prikazuje orangutana, koji je ujedno i nacionalna životinja. On simbolizira mirnoću, inteligenciju i snagu naše nacije.",
+      newsTitle: "Službene Vijesti",
+      news1: "Godišnjica Osnivanja",
+      news1Text: "Mundangaria nastavlja rasti i širiti svoje diplomatske odnose unutar mikronacijske zajednice.",
+      news2: "Digitalna Prisutnost",
+      news2Text: "Naša službena web stranica je sada online i bit će kontinuirano ažurirana u stvarnom vremenu!",
+      settings: "Postavke",
+      social: "Društvene Mreže",
+      lang: "Jezik",
+      navHome: "Početna",
+      navAbout: "O Nama",
+      navNews: "Vijesti",
+      navLang: "Jezik",
+      navSettings: "Postavke",
+      navSocial: "Mreže",
+      viewTitle: "Način Prikaza",
+      modeAuto: "Automatski (Prilagodljiv)",
+      modeDesktop: "Desktop Izgled",
+      modeMobile: "Mobilni Izgled",
+      bgSelectTitle: "Stil Pozadine",
+      bgMode1: "Pozadina 1 (Fizičke Čestice)",
+      bgMode2: "Pozadina 2 (Zamagljena Zastava)",
+      warTitle: "Pravi Razlog Našeg Osnivanja",
+      warHeader: "TAJNI DOSJE · DIPLOMATSKI MEMO",
+      warExtra: "Pravi razlog zbog kojeg smo osnovali Mundangariju je dvostruk: prvo, započelo je kao projekt, a drugo, služi sigurnosnim svrhama.",
+      warExtra2: "Pod 'sigurnosnim svrhama' misli se na sljedeće: ako dođe do rata između Njemačke (gdje se nalazimo) i druge zemlje, a njemačka teritorija u našoj blizini bude izgubljena – scenarij u kojem bismo se mogli nezavisno odvojiti od Njemačke – ostali bismo uglavnom neutralni, ali bliži njemačkoj strani.",
+      warExtra3: "Iako su takvi scenariji vrlo malo vjerovatni, uvijek treba biti spreman!",
+      back: "Nazad na Početnu",
+      aboutTitle: "O Mundangariji",
+      aboutText1: "Republika Mundangaria osnovana je 10. septembra 2025. u Stuttgartu, Njemačka.",
+      aboutText2: "Mundangarijom upravljaju tri osobe: 'Plor Ochtir in Mundangaria'. Ovo ime potječe iz domaćeg jezika i prevodi se kao 'Tri oca Mundangarije'.",
+      aboutText3: "Naša mikronacija je miroljubiva zajednica koja cijeni slobodu, kreativnost i međusobno poštovanje. Kao muslimanska mikronacija, islamske vrijednosti igraju centralnu ulogu u našem svakodnevnom životu.",
+      aboutText4: "Mundangaria ne podržava fašizam ni komunizam. Naš put je put nezavisnosti, mira i samoopredjeljenja.",
+      aboutText5: "U Mundangariji se govore dva jezika: njemački i mundangarski. Mundangarski jezik je maternji jezik naše mikronacije i koristi se tokom službenih ceremonija i kulturnih događaja.",
+      aboutText6: "Euro (€) služi kao službena valuta i sredstvo plaćanja u Mundangariji. Sva trgovina i finansijske transakcije obavljaju se u eurima.",
+      aboutText7: "Stanovništvo: 1 stanovnik i 4 člana. Zajedno činimo malu, ali ponosnu zajednicu koja kolektivno radi za budućnost Mundangarije.",
+      aboutText8: "Mundangaria sebe vidi kao centar za kulturnu razmjenu i prijateljske odnose s drugim mikronacijama širom svijeta. Ponosni smo na našu nezavisnost i naš jedinstveni identitet."
+    },
+    ar: {
+      homeTitle: "مرحباً في موندانغاريا",
+      homeText: "جمهورية موندانغاريا هي دولة مجهرية تأسست في 10 سبتمبر 2025، وتقع في شتوتغارت، بادن-فورتمبيرغ، ألمانيا. تتكون من مجتمع صغير يضم ساكناً واحداً وأربعة أعضاء، وتحكمها 'بلور أوختير في موندانغاريا' – آباء موندانغاريا الثلاثة.",
+      symbolsTitle: "رموز موندانغاريا",
+      flagText: "العلم الوطني",
+      warFlagText: "علم الحرب",
+      coatText: "شعار النبالة",
+      flagDesc: "يتألف علم موندانغاريا من ثلاثة ألوان، لكل منها معنى عميق: الأزرق يرمز إلى الحرية الواسعة كالسماء. الأحمر يمثل شجاعة شعب موندانغاريا. الأخضر يعكس الإسلام، لأن موندانغاريا دولة مجهرية مسلمة. الرموز الثلاثة في الوسط – هلالان ونجمة – تمثل الإسلام مع اللون الأخضر، وتكرم في الوقت نفسه المؤسسين الثلاثة لموندانغاريا ('بلور أوختير في موندانغاريا').",
+      warFlagDesc: "يرفع علم الحرب الموندانغاري حصراً في أوقات النزاع بين الدول المجهرية أو الدول ذات السيادة. الأسود يجسد شجاعتنا – سندافع عن دولتنا المجهرية تحت أي ظرف. الأحمر يمثل الشجاعة التي نمتلكها عندما نقاتل من أجل موندانغاريا.",
+      coatDesc: "يظهر شعار النبالة لموندانغاريا إنسان الغاب، وهو أيضاً الحيوان الوطني. يرمز إلى الهدوء والذكاء والقوة التي تتمتع بها أمتنا.",
+      newsTitle: "الأخبار الرسمية",
+      news1: "ذكرى التأسيس",
+      news1Text: "تواصل موندانغاريا النمو وتوسيع علاقاتها الدبلوماسية داخل مجتمع الدول المجهرية.",
+      news2: "الوجود الرقمي",
+      news2Text: "موقعنا الرسمي على الإنترنت الآن وسيتم تحديثه باستمرار في الوقت الفعلي!",
+      settings: "الإعدادات",
+      social: "وسائل التواصل الاجتماعي",
+      lang: "اللغة",
+      navHome: "الرئيسية",
+      navAbout: "عن",
+      navNews: "الأخبار",
+      navLang: "اللغة",
+      navSettings: "الإعدادات",
+      navSocial: "التواصل",
+      viewTitle: "وضع العرض",
+      modeAuto: "تلقائي (متجاوب)",
+      modeDesktop: "تخطيط سطح المكتب",
+      modeMobile: "تخطيط الهاتف",
+      bgSelectTitle: "نمط الخلفية",
+      bgMode1: "الخلفية 1 (جزيئات فيزيائية)",
+      bgMode2: "الخلفية 2 (علم ضبابي)",
+      warTitle: "السبب الحقيقي لتأسيسنا",
+      warHeader: "وثيقة سرية · مذكرة دبلوماسية",
+      warExtra: "السبب الحقيقي وراء تأسيسنا لموندانغاريا هو سبب مزدوج: أولاً، بدأ كمشروع، وثانياً، يخدم أغراضاً أمنية.",
+      warExtra2: "بـ 'أغراض أمنية' نعني ما يلي: إذا نشبت حرب بين ألمانيا (حيث نتواجد) ودولة أخرى، وفقدت أراضٍ ألمانية بالقرب منا – سيناريو يمكننا فيه الانفصال بشكل مستقل عن ألمانيا – سنبقى خلال هذه الفترة محايدين بشكل أساسي، مع ميلنا إلى الجانب الألماني.",
+      warExtra3: "حتى لو كانت هذه السيناريوهات غير محتملة للغاية، يجب أن تكون مستعداً دائماً!",
+      back: "العودة إلى الرئيسية",
+      aboutTitle: "عن موندانغاريا",
+      aboutText1: "تأسست جمهورية موندانغاريا في 10 سبتمبر 2025 في شتوتغارت، ألمانيا.",
+      aboutText2: "تحكم موندانغاريا ثلاثة أشخاص: 'بلور أوختير في موندانغاريا'. هذا الاسم مشتق من اللغة المحلية ويعني 'آباء موندانغاريا الثلاثة'.",
+      aboutText3: "دولتنا المجهرية هي مجتمع مسالم يقدر الحرية والإبداع والاحترام المتبادل. باعتبارنا دولة مجهرية مسلمة، تلعب القيم الإسلامية دوراً مركزياً في حياتنا اليومية.",
+      aboutText4: "موندانغاريا لا تدعم الفاشية أو الشيوعية. طريقنا هو طريق الاستقلال والسلام وتقرير المصير.",
+      aboutText5: "يتم التحدث بلغتين في موندانغاريا: الألمانية والموندانغارية. اللغة الموندانغارية هي اللغة الأم لدولتنا المجهرية وتستخدم خلال الاحتفالات الرسمية والفعاليات الثقافية.",
+      aboutText6: "اليورو (€) هو العملة الرسمية ووسيلة الدفع في موندانغاريا. تتم جميع التجارة والمعاملات المالية باليورو.",
+      aboutText7: "عدد السكان: ساكن واحد و 4 أعضاء. نشكل معاً مجتمعاً صغيراً لكن فخوراً يعمل بشكل جماعي من أجل مستقبل موندانغاريا.",
+      aboutText8: "ترى موندانغاريا نفسها كمركز للتبادل الثقافي والعلاقات الودية مع الدول المجهرية الأخرى في جميع أنحاء العالم. نحن فخورون باستقلالنا وهويتنا الفريدة."
+    }
+  };
+  
+  const microInfo = {
+    en: {
+      otherTitle: "Other Micronations",
+      name: "Republic of Molossia",
+      text: "Molossia is one of the best-known micronations in the world. It was founded on May 26, 1977 by Kevin Baugh and is located in the US state of Nevada. Although Molossia is not officially recognized by any state, it has its own flag, laws and currency. Today it is considered one of the best-known examples of a modern micronation. Molossia is also a very good friend of the Republic of Mundangaria. The friendly relations between the two nations are based on mutual respect and appreciation within the micronational community.",
+      link: "Visit the Official Molossia Website"
+    },
+    de: {
+      otherTitle: "Andere Mikronationen",
+      name: "Republik Molossia",
+      text: "Molossia ist eine der bekanntesten Mikronationen der Welt. Sie wurde am 26. Mai 1977 von Kevin Baugh gegründet und befindet sich im US-Bundesstaat Nevada. Obwohl Molossia von keinem Staat offiziell anerkannt wird, besitzt sie eine eigene Flagge, Gesetze und eine eigene Währung. Heute gilt sie als eines der bekanntesten Beispiele einer modernen Mikronation. Molossia ist außerdem ein sehr guter Freund der Republik Mundangaria. Die freundschaftlichen Beziehungen zwischen beiden Nationen basieren auf gegenseitigem Respekt und Wertschätzung innerhalb der Mikronationsgemeinschaft.",
+      link: "Besuche die offizielle Molossia-Website"
+    },
+    tr: {
+      otherTitle: "Diğer Mikronasyonlar",
+      name: "Molossia Cumhuriyeti",
+      text: "Molossia, dünyanın en bilinen mikronasyonlarından biridir. 26 Mayıs 1977'de Kevin Baugh tarafından kurulmuş ve ABD'nin Nevada eyaletinde bulunmaktadır. Molossia, hiçbir devlet tarafından resmen tanınmasa da kendi bayrağına, yasalarına ve para birimine sahiptir. Günümüzde modern bir mikronasyonun en bilinen örneklerinden biri olarak kabul edilmektedir. Molossia ayrıca Mundangaria Cumhuriyeti'nin çok iyi bir dostudur. İki ulus arasındaki dostane ilişkiler, mikronasyon topluluğu içinde karşılıklı saygı ve takdire dayanmaktadır.",
+      link: "Resmî Molossia Web Sitesini Ziyaret Et"
+    },
+    bs: {
+      otherTitle: "Druge Mikronacije",
+      name: "Republika Molossia",
+      text: "Molossia je jedna od najpoznatijih mikronacija na svijetu. Osnovana je 26. maja 1977. od strane Kevina Baugha i nalazi se u američkoj saveznoj državi Nevada. Iako Molossia nije službeno priznata od strane bilo koje države, posjeduje vlastitu zastavu, zakone i valutu. Danas se smatra jednim od najpoznatijih primjera moderne mikronacije. Molossia je također vrlo dobar prijatelj Republike Mundangaria. Prijateljski odnosi između dviju nacija temelje se na uzajamnom poštovanju i uvažavanju unutar mikronacijske zajednice.",
+      link: "Posjetite Službenu Web Stranicu Molossia"
+    },
+    ar: {
+      otherTitle: "دول مجهرية أخرى",
+      name: "جمهورية مولوسيا",
+      text: "مولوسيا هي واحدة من أشهر الدول المجهرية في العالم. تأسست في 26 مايو 1977 على يد كيفن بوغ، وتقع في ولاية نيفادا الأمريكية. على الرغم من أن مولوسيا غير معترف بها رسمياً من قبل أي دولة، إلا أنها تمتلك علمها الخاص وقوانينها وعملتها الخاصة. تعتبر اليوم واحدة من أشهر الأمثلة على الدولة المجهرية الحديثة. مولوسيا هي أيضاً صديق جيد جداً لجمهورية موندانغاريا. تقوم العلاقات الودية بين الدولتين على الاحترام المتبادل والتقدير داخل مجتمع الدول المجهرية.",
+      link: "زر الموقع الرسمي لمولوسيا"
+    }
+  };
+  
+  function openPage(id) {
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+  
+  function toggleTheme() {
+    document.body.classList.toggle("light");
+    const isLight = document.body.classList.contains("light");
+    document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+    if (currentBgMode === 1) { stopCurrentAnimation(); startBackground1(); }
+  }
+  
+  function setMode(mode) {
+    localStorage.setItem("mode", mode);
+    document.body.classList.toggle("desktop-mode", mode==="desktop");
+    document.body.classList.toggle("mobile-mode", mode==="mobile");
+    if (mode==="auto") document.body.classList.remove("desktop-mode","mobile-mode");
+    ["modeAutoBtn","modeDesktopBtn","modeMobileBtn"].forEach(id=>document.getElementById(id)?.classList.remove("active"));
+    const activeMap={auto:"modeAutoBtn", desktop:"modeDesktopBtn", mobile:"modeMobileBtn"};
+    document.getElementById(activeMap[mode])?.classList.add("active");
+  }
+  
+  function setLang(lang) {
+    const d = data[lang]||data.de;
+    const m = microInfo[lang]||microInfo.de;
+    localStorage.setItem("lang", lang);
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang==="ar" ? "rtl" : "ltr";
+    document.getElementById("homeTitle").innerText = d.homeTitle;
+    document.getElementById("homeText").innerText = d.homeText;
+    document.getElementById("symbolsTitle").innerText = d.symbolsTitle;
+    document.getElementById("flagText").innerHTML = d.flagText;
+    document.getElementById("warFlagText").innerHTML = d.warFlagText;
+    document.getElementById("coatText").innerHTML = d.coatText;
+    document.getElementById("flagDesc").innerHTML = d.flagDesc;
+    document.getElementById("warFlagDesc").innerHTML = d.warFlagDesc;
+    document.getElementById("coatDesc").innerHTML = d.coatDesc;
+    document.getElementById("otherTitle").innerText = m.otherTitle;
+    document.getElementById("molossiaName").innerText = m.name;
+    document.getElementById("molossiaText").innerText = m.text;
+    document.getElementById("molossiaLink").innerText = m.link;
+    document.getElementById("newsTitle").innerText = d.newsTitle;
+    document.getElementById("news1").innerText = d.news1;
+    document.getElementById("news1Text").innerText = d.news1Text;
+    document.getElementById("news2").innerText = d.news2;
+    document.getElementById("news2Text").innerText = d.news2Text;
+    document.getElementById("settingsTitle").innerText = d.settings;
+    document.getElementById("socialTitle").innerText = d.social;
+    document.getElementById("langTitle").innerText = d.lang;
+    document.getElementById("viewTitle").innerText = d.viewTitle;
+    document.getElementById("bgSelectTitle").innerText = d.bgSelectTitle;
+    document.getElementById("bgMode1Btn").innerText = d.bgMode1;
+    document.getElementById("bgMode2Btn").innerText = d.bgMode2;
+    document.getElementById("modeAutoBtn").innerText = d.modeAuto;
+    document.getElementById("modeDesktopBtn").innerText = d.modeDesktop;
+    document.getElementById("modeMobileBtn").innerText = d.modeMobile;
+    document.getElementById("warTitle").innerText = d.warTitle;
+    document.getElementById("warHeader").innerHTML = d.warHeader;
+    document.getElementById("warExtra").innerHTML = d.warExtra;
+    document.getElementById("warExtra2").innerHTML = d.warExtra2;
+    document.getElementById("warExtra3").innerHTML = d.warExtra3;
+    document.getElementById("backBtn").innerText = d.back;
+    document.getElementById("aboutTitle").innerText = d.aboutTitle;
+    document.getElementById("aboutText1").innerText = d.aboutText1;
+    document.getElementById("aboutText2").innerText = d.aboutText2;
+    document.getElementById("aboutText3").innerText = d.aboutText3;
+    document.getElementById("aboutText4").innerText = d.aboutText4;
+    document.getElementById("aboutText5").innerText = d.aboutText5;
+    document.getElementById("aboutText6").innerText = d.aboutText6;
+    document.getElementById("aboutText7").innerText = d.aboutText7;
+    document.getElementById("aboutText8").innerText = d.aboutText8;
+    const navNames = { navHome:d.navHome, navAbout:d.navAbout, navNews:d.navNews, navLang:d.navLang, navSettings:d.navSettings, navSocial:d.navSocial };
+    for (let [id, txt] of Object.entries(navNames)) if(document.getElementById(id)) document.getElementById(id).innerText = txt;
+    document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "Light Mode" : "Dark Mode";
+  }
+  
+  // Initialisierung
+  document.addEventListener("DOMContentLoaded", () => {
+    const savedLang = localStorage.getItem("lang") || "de";
+    const savedTheme = localStorage.getItem("theme");
+    const savedMode = localStorage.getItem("mode") || "auto";
+    const savedBgMode = parseInt(localStorage.getItem("bgMode")) || 1;
+    if (savedTheme === "light") document.body.classList.add("light");
+    setLang(savedLang);
+    setMode(savedMode);
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseleave', onMouseLeave);
+    flagImage = new Image();
+    flagImage.src = "https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg";
+    setBackgroundMode(savedBgMode);
+  });
+</script>
+</body>
+</html>
