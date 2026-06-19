@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <title>Mundangaria · Mikronation</title>
 
-<!-- Firebase SDK für Chat -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -660,11 +660,12 @@
 
 <script>
 // ============================================================
-// FIREBASE KONFIGURATION
+// FIREBASE KONFIGURATION - KORRIGIERT!
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBoVaFsMDj72yBF_eslbBke7I1Ifx2iESo",
   authDomain: "mundangaria-chat.firebaseapp.com",
+  databaseURL: "https://mundangaria-chat-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "mundangaria-chat",
   storageBucket: "mundangaria-chat.firebasestorage.app",
   messagingSenderId: "506848957787",
@@ -1314,7 +1315,7 @@ const data = {
     warFlagDesc: "The Mundangarian war flag is raised exclusively in times of conflict between micronations or sovereign states. Black embodies our fearlessness – we will defend our micronation under any circumstances. Red represents the courage we possess when fighting for Mundangaria.",
     coatDesc: "The coat of arms of Mundangaria features an orangutan, which is also the national animal. It symbolizes the calmness, intelligence, and strength of our nation.",
     newsTitle: "Official News",
-    news1: "🎉 New Chatroom & Drawing Feature",
+    news1: "New Chatroom & Drawing Feature",
     news1Text: "We are excited to announce the launch of our new Community Chatroom! Now you can chat with other visitors in real time, share drawings and be part of our growing community. Visit the Community section to get started!",
     news2: "Digital Presence",
     news2Text: "Our official website is now online and will be continuously updated in real time!",
@@ -1348,7 +1349,7 @@ const data = {
     aboutText6: "The Euro (€) serves as the official currency and means of payment in Mundangaria. All trade and financial transactions are conducted in Euros.",
     aboutText7: "Population: 1 resident and 4 members. Together, we form a small yet proud community that works collectively for the future of Mundangaria.",
     aboutText8: "Mundangaria sees itself as a hub for cultural exchange and friendly relations with other micronations worldwide. We take pride in our independence and our unique identity.",
-    communityTitle: "💬 Community"
+    communityTitle: "Community"
   },
   de: {
     homeTitle: "Willkommen in Mundangaria",
@@ -1361,7 +1362,7 @@ const data = {
     warFlagDesc: "Die mundangarische Kriegsflagge wird ausschließlich in Zeiten von Konflikten zwischen Mikronationen oder souveränen Staaten gehisst. Schwarz verkörpert unsere Furchtlosigkeit – wir werden unsere Mikronation unter allen Umständen verteidigen. Rot repräsentiert den Mut, den wir besitzen, wenn wir für Mundangaria kämpfen.",
     coatDesc: "Das Wappen von Mundangaria zeigt einen Orang-Utan, der auch das Nationaltier ist. Es symbolisiert die Ruhe, Intelligenz und Stärke unserer Nation.",
     newsTitle: "Offizielle Neuigkeiten",
-    news1: "🎉 Neuer Chatroom & Zeichenfunktion",
+    news1: "Neuer Chatroom & Zeichenfunktion",
     news1Text: "Wir freuen uns, die Einführung unseres neuen Community-Chatrooms bekannt zu geben! Jetzt kannst du in Echtzeit mit anderen Besuchern chatten, Zeichnungen teilen und Teil unserer wachsenden Gemeinschaft werden. Besuche den Community-Bereich, um loszulegen!",
     news2: "Digitale Präsenz",
     news2Text: "Unsere offizielle Website ist jetzt online und wird kontinuierlich in Echtzeit aktualisiert!",
@@ -1395,7 +1396,7 @@ const data = {
     aboutText6: "Der Euro (€) dient als offizielle Währung und Zahlungsmittel in Mundangaria. Der gesamte Handel und alle Finanztransaktionen werden in Euro abgewickelt.",
     aboutText7: "Bevölkerung: 1 Einwohner und 4 Mitglieder. Gemeinsam bilden wir eine kleine, aber stolze Gemeinschaft, die gemeinsam für die Zukunft von Mundangaria arbeitet.",
     aboutText8: "Mundangaria versteht sich als Ort des kulturellen Austauschs und freundschaftlicher Beziehungen zu anderen Mikronationen weltweit. Wir sind stolz auf unsere Unabhängigkeit und unsere einzigartige Identität.",
-    communityTitle: "💬 Community"
+    communityTitle: "Community"
   },
   tr: {
     homeTitle: "Mundangaria'ya Hoş Geldiniz",
@@ -1408,7 +1409,7 @@ const data = {
     warFlagDesc: "Mundangaria savaş bayrağı, yalnızca mikronasyonlar veya egemen devletler arasındaki çatışma zamanlarında göndere çekilir. Siyah, korkusuzluğumuzu simgeler – mikronasyonumuzu her koşulda savunacağız. Kırmızı, Mundangaria için savaşırken sahip olduğumuz cesareti temsil eder.",
     coatDesc: "Mundangaria arması, aynı zamanda ulusal hayvan olan orangutanı gösterir. Bu, ulusumuzun sakinliğini, zekâsını ve gücünü simgeler.",
     newsTitle: "Resmî Haberler",
-    news1: "🎉 Yeni Sohbet Odası ve Çizim Özelliği",
+    news1: "Yeni Sohbet Odası ve Çizim Özelliği",
     news1Text: "Yeni Topluluk Sohbet Odamızı duyurmaktan heyecan duyuyoruz! Artık diğer ziyaretçilerle gerçek zamanlı olarak sohbet edebilir, çizimler paylaşabilir ve büyüyen topluluğumuzun bir parçası olabilirsiniz. Başlamak için Topluluk bölümünü ziyaret edin!",
     news2: "Dijital Varlık",
     news2Text: "Resmî web sitemiz artık çevrimiçi ve gerçek zamanlı olarak sürekli güncellenecek!",
@@ -1442,7 +1443,7 @@ const data = {
     aboutText6: "Euro (€), Mundangaria'da resmî para birimi ve ödeme aracı olarak hizmet eder. Tüm ticaret ve finansal işlemler Euro üzerinden yürütülür.",
     aboutText7: "Nüfus: 1 sakin ve 4 üye. Birlikte, Mundangaria'nın geleceği için ortaklaşa çalışan küçük ama gururlu bir topluluk oluşturuyoruz.",
     aboutText8: "Mundangaria, dünya çapındaki diğer mikronasyonlarla kültürel alışveriş ve dostane ilişkiler için bir merkez olarak görür. Bağımsızlığımız ve eşsiz kimliğimizle gurur duyuyoruz.",
-    communityTitle: "💬 Topluluk"
+    communityTitle: "Topluluk"
   },
   bs: {
     homeTitle: "Dobrodošli u Mundangariju",
@@ -1455,7 +1456,7 @@ const data = {
     warFlagDesc: "Mundangarijska ratna zastava podiže se isključivo u vrijeme sukoba između mikronacija ili suverenih država. Crna utjelovljuje našu neustrašivost – branit ćemo našu mikronaciju pod bilo kojim okolnostima. Crvena predstavlja hrabrost koju posjedujemo kada se borimo za Mundangariju.",
     coatDesc: "Grb Mundangarije prikazuje orangutana, koji je ujedno i nacionalna životinja. On simbolizira mirnoću, inteligenciju i snagu naše nacije.",
     newsTitle: "Službene Vijesti",
-    news1: "🎉 Novi Chatroom i Funkcija Crtanja",
+    news1: "Novi Chatroom i Funkcija Crtanja",
     news1Text: "Uzbuđeni smo najaviti pokretanje našeg novog Community Chatroom-a! Sada možete razgovarati u stvarnom vremenu s drugim posjetiteljima, dijeliti crteže i biti dio naše rastuće zajednice. Posjetite Community odjeljak da započnete!",
     news2: "Digitalna Prisutnost",
     news2Text: "Naša službena web stranica je sada online i bit će kontinuirano ažurirana u stvarnom vremenu!",
@@ -1489,7 +1490,7 @@ const data = {
     aboutText6: "Euro (€) služi kao službena valuta i sredstvo plaćanja u Mundangariji. Sva trgovina i finansijske transakcije obavljaju se u eurima.",
     aboutText7: "Stanovništvo: 1 stanovnik i 4 člana. Zajedno činimo malu, ali ponosnu zajednicu koja kolektivno radi za budućnost Mundangarije.",
     aboutText8: "Mundangaria sebe vidi kao centar za kulturnu razmjenu i prijateljske odnose s drugim mikronacijama širom svijeta. Ponosni smo na našu nezavisnost i naš jedinstveni identitet.",
-    communityTitle: "💬 Zajednica"
+    communityTitle: "Zajednica"
   },
   ar: {
     homeTitle: "مرحباً في موندانغاريا",
@@ -1502,7 +1503,7 @@ const data = {
     warFlagDesc: "يرفع علم الحرب الموندانغاري حصراً في أوقات النزاع بين الدول المجهرية أو الدول ذات السيادة. الأسود يجسد شجاعتنا – سندافع عن دولتنا المجهرية تحت أي ظرف. الأحمر يمثل الشجاعة التي نمتلكها عندما نقاتل من أجل موندانغاريا.",
     coatDesc: "يظهر شعار النبالة لموندانغاريا إنسان الغاب، وهو أيضاً الحيوان الوطني. يرمز إلى الهدوء والذكاء والقوة التي تتمتع بها أمتنا.",
     newsTitle: "الأخبار الرسمية",
-    news1: "🎉 غرفة دردشة جديدة وميزة الرسم",
+    news1: "غرفة دردشة جديدة وميزة الرسم",
     news1Text: "يسعدنا الإعلان عن إطلاق غرفة الدردشة المجتمعية الجديدة! يمكنك الآن الدردشة في الوقت الفعلي مع زوار آخرين ومشاركة الرسومات وتكون جزءاً من مجتمعنا المتنامي. قم بزيارة قسم المجتمع للبدء!",
     news2: "الوجود الرقمي",
     news2Text: "موقعنا الرسمي على الإنترنت الآن وسيتم تحديثه باستمرار في الوقت الفعلي!",
@@ -1536,7 +1537,7 @@ const data = {
     aboutText6: "اليورو (€) هو العملة الرسمية ووسيلة الدفع في موندانغاريا. تتم جميع التجارة والمعاملات المالية باليورو.",
     aboutText7: "عدد السكان: ساكن واحد و 4 أعضاء. نشكل معاً مجتمعاً صغيراً لكن فخوراً يعمل بشكل جماعي من أجل مستقبل موندانغاريا.",
     aboutText8: "ترى موندانغاريا نفسها كمركز للتبادل الثقافي والعلاقات الودية مع الدول المجهرية الأخرى في جميع أنحاء العالم. نحن فخورون باستقلالنا وهويتنا الفريدة.",
-    communityTitle: "💬 المجتمع"
+    communityTitle: "المجتمع"
   }
 };
 
@@ -1644,13 +1645,13 @@ function setLang(lang) {
     if (document.getElementById(id)) document.getElementById(id).innerText = txt;
   }
 
-  document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "☀️ Light Mode" : "🌙 Dark Mode";
+  document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "Light Mode" : "Dark Mode";
 }
 
 function toggleTheme() {
   document.body.classList.toggle("light");
   const isLight = document.body.classList.contains("light");
-  document.getElementById("themeBtn").innerText = isLight ? "☀️ Light Mode" : "🌙 Dark Mode";
+  document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
   localStorage.setItem("theme", isLight ? "light" : "dark");
   if (currentBgMode === 1) { stopCurrentAnimation(); startBackground1(); }
 }
