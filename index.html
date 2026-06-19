@@ -10,493 +10,122 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
-  :root {
-    --text: white;
-    --card: rgba(255, 255, 255, 0.12);
-    --border: rgba(255, 255, 255, 0.25);
-    --nav: rgba(0, 0, 0, 0.6);
-    --accent: #ffd966;
-    --card-shadow: 0 8px 20px rgba(0,0,0,0.3);
-  }
-
-  body.light {
-    --text: #111;
-    --card: rgba(255, 255, 255, 0.7);
-    --border: rgba(0, 0, 0, 0.2);
-    --nav: rgba(245, 245, 245, 0.85);
-  }
-
-  html, body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-    color: var(--text);
-    background-color: #000;
-    overflow-x: hidden;
-  }
-
-  #bgCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .page {
-    display: none;
-    min-height: calc(100vh - 72px);
-    padding: 20px 16px 90px 16px;
-    animation: fadeIn 0.25s ease;
-    position: relative;
-    z-index: 2;
-  }
+  /* ===== ALLE STYLES (wie gehabt) ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --text: white; --card: rgba(255,255,255,0.12); --border: rgba(255,255,255,0.25); --nav: rgba(0,0,0,0.6); --accent: #ffd966; --card-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+  body.light { --text: #111; --card: rgba(255,255,255,0.7); --border: rgba(0,0,0,0.2); --nav: rgba(245,245,245,0.85); }
+  html, body { margin: 0; min-height: 100vh; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; color: var(--text); background-color: #000; overflow-x: hidden; }
+  #bgCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: block; z-index: 0; pointer-events: none; }
+  .page { display: none; min-height: calc(100vh - 72px); padding: 20px 16px 90px 16px; animation: fadeIn 0.25s ease; position: relative; z-index: 2; }
   .page.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px);}
-    to { opacity: 1; transform: translateY(0);}
-  }
-
-  .card {
-    background: var(--card);
-    backdrop-filter: blur(18px);
-    border: 1px solid var(--border);
-    border-radius: 32px;
-    padding: 20px 24px;
-    margin: 16px auto;
-    max-width: 880px;
-    box-shadow: var(--card-shadow);
-    transition: transform 0.2s;
-  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .card { background: var(--card); backdrop-filter: blur(18px); border: 1px solid var(--border); border-radius: 32px; padding: 20px 24px; margin: 16px auto; max-width: 880px; box-shadow: var(--card-shadow); transition: transform 0.2s; }
   .card:hover { transform: translateY(-3px); }
-
-  .nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 72px;
-    background: var(--nav);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 100;
-  }
-  .nav button {
-    background: transparent;
-    border: none;
-    color: var(--text);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    opacity: 0.8;
-    padding: 8px 8px;
-    border-radius: 40px;
-    transition: 0.2s;
-  }
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; height: 72px; background: var(--nav); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; z-index: 100; }
+  .nav button { background: transparent; border: none; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; opacity: 0.8; padding: 8px 8px; border-radius: 40px; transition: 0.2s; }
   .nav button:hover { opacity: 1; background: rgba(255,255,255,0.15); }
-
-  .settingBtn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px 16px;
-    border-radius: 60px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.08);
-    color: var(--text);
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: 0.2s;
-    text-align: center;
-  }
-  .settingBtn.active {
-    outline: 2px solid var(--accent);
-    background: rgba(255, 217, 102, 0.2);
-  }
-
-  .infoLink {
-    display: inline-block;
-    margin-top: 16px;
-    padding: 10px 18px;
-    border-radius: 40px;
-    background: rgba(255,255,255,0.1);
-    text-decoration: none;
-    color: var(--text);
-  }
-
-  img {
-    display: block;
-    margin: 20px auto;
-    border-radius: 24px;
-    max-width: 100%;
-    width: auto;
-    max-height: 320px;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    cursor: pointer;
-  }
-
-  .symbol-desc {
-    text-align: center;
-    font-size: 0.95rem;
-    margin-top: -10px;
-    margin-bottom: 25px;
-    opacity: 0.9;
-    line-height: 1.5;
-    padding: 0 12px;
-  }
-
+  .settingBtn { width: 100%; margin-top: 12px; padding: 12px 16px; border-radius: 60px; border: 1px solid var(--border); background: rgba(255,255,255,0.08); color: var(--text); font-size: 16px; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: center; }
+  .settingBtn.active { outline: 2px solid var(--accent); background: rgba(255,217,102,0.2); }
+  .infoLink { display: inline-block; margin-top: 16px; padding: 10px 18px; border-radius: 40px; background: rgba(255,255,255,0.1); text-decoration: none; color: var(--text); }
+  img { display: block; margin: 20px auto; border-radius: 24px; max-width: 100%; width: auto; max-height: 320px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; }
+  .symbol-desc { text-align: center; font-size: 0.95rem; margin-top: -10px; margin-bottom: 25px; opacity: 0.9; line-height: 1.5; padding: 0 12px; }
   h1, h2, h3 { font-weight: 600; }
+  .war-bg-layer { position: fixed; inset: 0; background: url("https://cdn.micro.wiki/en/7/74/War_flag_of_Mundangaria.jpg"); background-size: cover; background-position: center; filter: blur(8px) brightness(0.35); z-index: -1; }
+  #war .overlay-dark { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 0; }
 
-  .war-bg-layer {
-    position: fixed;
-    inset: 0;
-    background: url("https://cdn.micro.wiki/en/7/74/War_flag_of_Mundangaria.jpg");
-    background-size: cover;
-    background-position: center;
-    filter: blur(8px) brightness(0.35);
-    z-index: -1;
-  }
-  #war .overlay-dark {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(4px);
-    z-index: 0;
-  }
-
-  /* ===== CHAT STYLES ===== */
-  .chat-container {
-    max-width: 1200px;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  .chat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  @media (max-width: 900px) {
-    .chat-grid { grid-template-columns: 1fr; }
-  }
-
-  .chat-panel {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(8px);
-    border-radius: 24px;
-    padding: 20px;
-    border: 1px solid rgba(255,255,255,0.08);
-    transition: 0.3s;
-  }
-
+  /* ===== CHAT & PIXEL ===== */
+  .chat-container { max-width: 1200px; width: 100%; margin: 0 auto; }
+  .chat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .chat-grid { grid-template-columns: 1fr; } }
+  .chat-panel { background: rgba(255,255,255,0.05); backdrop-filter: blur(8px); border-radius: 24px; padding: 20px; border: 1px solid rgba(255,255,255,0.08); transition: 0.3s; }
   .chat-panel:hover { border-color: rgba(255,217,102,0.2); }
-
-  .chat-panel-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #ffd966;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .chat-panel-title .badge {
-    background: rgba(255,217,102,0.15);
-    color: #ffd966;
-    padding: 2px 12px;
-    border-radius: 40px;
-    font-size: 11px;
-    font-weight: 400;
-  }
-
-  #chatMessages {
-    height: 340px;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.3);
-    border-radius: 16px;
-    padding: 14px;
-    border: 1px solid rgba(255,255,255,0.06);
-    margin-bottom: 12px;
-  }
-
+  .chat-panel-title { font-size: 16px; font-weight: 600; color: #ffd966; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+  .chat-panel-title .badge { background: rgba(255,217,102,0.15); color: #ffd966; padding: 2px 12px; border-radius: 40px; font-size: 11px; font-weight: 400; }
+  #chatMessages { height: 340px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 12px; font-size: 13px; }
   #chatMessages::-webkit-scrollbar { width: 5px; }
   #chatMessages::-webkit-scrollbar-track { background: transparent; }
   #chatMessages::-webkit-scrollbar-thumb { background: rgba(255,217,102,0.4); border-radius: 10px; }
-
-  .msg {
-    padding: 8px 14px;
-    margin-bottom: 6px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 12px;
-    border-left: 3px solid rgba(255,217,102,0.3);
-    word-break: break-word;
-    animation: fadeIn 0.2s ease;
-  }
-
-  .msg .user {
-    color: #ffd966;
-    font-weight: 600;
-    margin-right: 8px;
-  }
-
-  .msg .time {
-    font-size: 10px;
-    opacity: 0.3;
-    margin-left: 8px;
-  }
-
-  .msg .draw-preview {
-    margin-top: 8px;
-    border-radius: 12px;
-    max-width: 180px;
-    cursor: pointer;
-    transition: 0.2s;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.06);
-    overflow: hidden;
-  }
-
-  .msg .draw-preview:hover {
-    transform: scale(1.03);
-    border-color: rgba(255,217,102,0.3);
-  }
-
-  .msg .draw-preview img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 11px;
-  }
-
-  .msg.system {
-    border-left-color: rgba(255,255,255,0.15);
-    font-style: italic;
-    opacity: 0.5;
-    font-size: 13px;
-  }
-
-  .msg .draw-badge {
-    display: inline-block;
-    background: rgba(255,217,102,0.1);
-    color: #ffd966;
-    font-size: 11px;
-    padding: 0 10px;
-    border-radius: 40px;
-    margin-left: 6px;
-  }
-
-  .chat-input-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .chat-input-row input {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: 40px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.04);
-    color: white;
-    font-size: 14px;
-    outline: none;
-    font-family: inherit;
-    min-width: 100px;
-    transition: 0.3s;
-  }
-
+  .msg { padding: 8px 14px; margin-bottom: 6px; background: rgba(255,255,255,0.04); border-radius: 12px; border-left: 3px solid rgba(255,217,102,0.3); word-break: break-word; animation: fadeIn 0.2s ease; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .msg .msg-content { flex: 1; }
+  .msg .user { color: #ffd966; font-weight: 600; margin-right: 8px; cursor: pointer; }
+  .msg .user:hover { text-decoration: underline; }
+  .msg .time { font-size: 10px; opacity: 0.3; margin-left: 8px; }
+  .msg .draw-preview { margin-top: 8px; border-radius: 12px; max-width: 180px; cursor: pointer; transition: 0.2s; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.06); overflow: hidden; }
+  .msg .draw-preview:hover { transform: scale(1.03); border-color: rgba(255,217,102,0.3); }
+  .msg .draw-preview img { display: block; width: 100%; height: auto; border-radius: 11px; }
+  .msg.system { border-left-color: rgba(255,255,255,0.15); font-style: italic; opacity: 0.5; font-size: 13px; }
+  .msg .draw-badge { display: inline-block; background: rgba(255,217,102,0.1); color: #ffd966; font-size: 11px; padding: 0 10px; border-radius: 40px; margin-left: 6px; }
+  .msg .delete-btn { background: rgba(255,0,0,0.15); border: 1px solid rgba(255,0,0,0.2); color: #ff6b6b; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .msg .delete-btn:hover { background: rgba(255,0,0,0.3); transform: scale(1.1); }
+  .msg .delete-btn.hidden { display: none; }
+  .msg.banned-msg { border-left-color: #ff6b6b; opacity: 0.3; text-decoration: line-through; }
+  .msg.deleted-msg { border-left-color: #666; opacity: 0.3; font-style: italic; }
+  .chat-input-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .chat-input-row input { flex: 1; padding: 10px 16px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: white; font-size: 14px; outline: none; font-family: inherit; min-width: 100px; transition: 0.3s; }
   .chat-input-row input:focus { border-color: rgba(255,217,102,0.3); }
   .chat-input-row input::placeholder { color: rgba(255,255,255,0.2); }
   .chat-input-row input.error { border-color: #ff6b6b; box-shadow: 0 0 10px rgba(255,0,0,0.1); }
-
-  .chat-input-row button {
-    padding: 10px 24px;
-    border-radius: 40px;
-    border: none;
-    background: #ffd966;
-    color: #0a0a1a;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-    font-size: 14px;
-    font-family: inherit;
-  }
-
+  .chat-input-row button { padding: 10px 24px; border-radius: 40px; border: none; background: #ffd966; color: #0a0a1a; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 14px; font-family: inherit; }
   .chat-input-row button:hover { background: #ffed4a; transform: scale(1.02); }
   .chat-input-row button:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-  .chat-status-bar {
-    margin-top: 10px;
-    font-size: 12px;
-    opacity: 0.3;
-    text-align: center;
-    letter-spacing: 0.5px;
-  }
-
-  .name-status {
-    font-size: 12px;
-    margin-top: 4px;
-    padding-left: 16px;
-  }
+  .chat-status-bar { margin-top: 10px; font-size: 12px; opacity: 0.3; text-align: center; letter-spacing: 0.5px; }
+  .name-status { font-size: 12px; margin-top: 4px; padding-left: 16px; }
   .name-status.available { color: #4ade80; }
   .name-status.taken { color: #ff6b6b; }
   .name-status.checking { color: #ffd966; }
+  .online-indicator { display: flex; align-items: center; gap: 8px; font-size: 13px; opacity: 0.7; }
+  .online-dot { width: 10px; height: 10px; border-radius: 50%; background: #4ade80; display: inline-block; animation: pulse 2s infinite; }
+  .online-dot.offline { background: #ff6b6b; animation: none; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  .online-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    opacity: 0.7;
-  }
-
-  .online-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #4ade80;
-    display: inline-block;
-    animation: pulse 2s infinite;
-  }
-
-  .online-dot.offline {
-    background: #ff6b6b;
-    animation: none;
-  }
-
-  /* ===== DRAW ===== */
-  #drawCanvas {
-    width: 100%;
-    aspect-ratio: 4/3;
-    background: rgba(255,255,255,0.95);
-    border-radius: 16px;
-    cursor: crosshair;
-    touch-action: none;
-    display: block;
-    border: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .draw-tools {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 14px;
-    align-items: center;
-  }
-
-  .draw-tools label {
-    font-size: 12px;
-    opacity: 0.5;
-    font-weight: 500;
-  }
-
-  .draw-tools input[type="color"] {
-    width: 34px;
-    height: 34px;
-    border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 50%;
-    cursor: pointer;
-    background: none;
-    padding: 0;
-  }
-
-  .draw-tools input[type="range"] {
-    width: 100px;
-    accent-color: #ffd966;
-    background: transparent;
-  }
-
-  .draw-tools button {
-    padding: 8px 18px;
-    border-radius: 40px;
-    border: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.04);
-    color: white;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 13px;
-    transition: 0.2s;
-  }
-
-  .draw-tools button:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,217,102,0.2); }
-
-  .draw-tools .send-draw-btn {
-    background: #ffd966;
-    color: #0a0a1a;
-    border: none;
-    font-weight: 600;
-  }
-
-  .draw-tools .send-draw-btn:hover { background: #ffed4a; transform: scale(1.02); }
-
-  .draw-tools .clear-btn { border-color: rgba(200,60,60,0.3); color: #cc6666; }
-  .draw-tools .clear-btn:hover { background: rgba(200,60,60,0.15); border-color: #cc4444; }
-
-  /* ===== MODAL ===== */
-  .modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.92);
-    backdrop-filter: blur(12px);
-    z-index: 999;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-  }
-
-  .modal.active { display: flex; }
-
-  .modal img {
-    max-width: 85%;
-    max-height: 85%;
-    border-radius: 24px;
-    border: 2px solid rgba(255,217,102,0.2);
-    box-shadow: 0 0 60px rgba(255,217,102,0.05);
-  }
-
-  .modal .close-hint {
-    position: absolute;
-    bottom: 30px;
-    color: rgba(255,255,255,0.2);
-    font-size: 13px;
-  }
-
-  .connection-error {
-    color: #ff6b6b;
-    text-align: center;
-    padding: 20px;
-    background: rgba(255,0,0,0.05);
-    border-radius: 16px;
-    border: 1px solid rgba(255,0,0,0.1);
-    display: none;
-    margin-top: 16px;
-  }
-
+  /* ===== PIXEL CANVAS ===== */
+  .canvas-wrapper { width: 100%; aspect-ratio: 1/1; overflow: auto; background: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); touch-action: none; }
+  .canvas-wrapper::-webkit-scrollbar { width: 4px; height: 4px; }
+  .canvas-wrapper::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+  .canvas-wrapper::-webkit-scrollbar-thumb { background: rgba(255,217,102,0.3); border-radius: 8px; }
+  #pixelCanvas { display: grid; background: white; touch-action: none; user-select: none; cursor: crosshair; gap: 1px; padding: 2px; transform-origin: top left; transition: transform 0.08s ease; }
+  .pixel { border-radius: 0px; transition: background 0.03s; cursor: crosshair; background: white; flex-shrink: 0; }
+  .pixel:hover { outline: 1px solid rgba(0,0,0,0.05); }
+  .tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  .tools label { font-size: 11px; opacity: 0.5; }
+  .tools input[type="color"] { width: 26px; height: 26px; border: 2px solid rgba(255,255,255,0.1); border-radius: 50%; cursor: pointer; background: none; padding: 0; }
+  .tools button { padding: 5px 12px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.04); color: white; cursor: pointer; font-size: 12px; transition: 0.2s; min-width: 32px; }
+  .tools button:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,217,102,0.2); }
+  .tools .clear-btn { border-color: rgba(200,60,60,0.3); color: #cc6666; }
+  .tools .clear-btn:hover { background: rgba(200,60,60,0.15); border-color: #cc4444; }
+  .tools .zoom-btn { border-color: rgba(255,217,102,0.2); color: #ffd966; }
+  .tools .zoom-btn:hover { background: rgba(255,217,102,0.1); }
+  .tools .zoom-level { font-size: 12px; opacity: 0.4; min-width: 40px; text-align: center; }
+  .pixel-counter { font-size: 11px; opacity: 0.4; margin-left: auto; }
+  .connection-error { color: #ff6b6b; text-align: center; padding: 10px; background: rgba(255,0,0,0.05); border-radius: 12px; border: 1px solid rgba(255,0,0,0.1); display: none; margin-top: 10px; font-size: 13px; }
   .connection-error.show { display: block; }
 
-  @media (max-width: 640px) {
-    .card { padding: 18px; }
-    .nav button { font-size: 11px; padding: 6px 4px; }
-    .chat-input-row input { font-size: 13px; padding: 8px 14px; }
-    .chat-input-row button { padding: 8px 16px; font-size: 13px; }
-    #chatMessages { height: 220px; }
-  }
+  /* ===== ADMIN ===== */
+  .admin-bar { display: flex; gap: 8px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+  .admin-bar button { padding: 4px 12px; border-radius: 30px; border: 1px solid rgba(255,217,102,0.2); background: rgba(255,217,102,0.05); color: #ffd966; cursor: pointer; font-size: 11px; transition: 0.2s; }
+  .admin-bar button:hover { background: rgba(255,217,102,0.15); }
+  .admin-bar .admin-active { background: rgba(255,217,102,0.15); border-color: #ffd966; }
+  .admin-panel { display: none; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 12px; margin-top: 10px; border: 1px solid rgba(255,217,102,0.1); }
+  .admin-panel.show { display: block; }
+  .admin-panel h4 { color: #ffd966; font-size: 13px; margin-bottom: 8px; }
+  .admin-panel input { padding: 6px 12px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.04); color: white; font-size: 12px; outline: none; width: 150px; }
+  .admin-panel input:focus { border-color: rgba(255,217,102,0.3); }
+  .admin-panel button { padding: 5px 14px; border-radius: 30px; border: none; background: #ffd966; color: #0a0a1a; font-weight: 600; cursor: pointer; font-size: 12px; transition: 0.2s; }
+  .admin-panel button:hover { background: #ffed4a; }
+  .admin-panel .ban-list { list-style: none; padding: 0; margin: 8px 0; font-size: 12px; }
+  .admin-panel .ban-list li { padding: 4px 8px; background: rgba(255,255,255,0.04); border-radius: 6px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+  .admin-panel .ban-list .unban-btn { background: rgba(200,60,60,0.2); color: #cc6666; border: none; padding: 2px 10px; border-radius: 20px; font-size: 10px; cursor: pointer; }
+  .admin-panel .ban-list .unban-btn:hover { background: rgba(200,60,60,0.3); }
+  .admin-panel .ban-info { font-size: 11px; opacity: 0.4; margin-top: 4px; }
+  .admin-panel .ban-input-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  /* ===== MODAL ===== */
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(12px); z-index: 999; justify-content: center; align-items: center; cursor: pointer; }
+  .modal.active { display: flex; }
+  .modal img { max-width: 85%; max-height: 85%; border-radius: 24px; border: 2px solid rgba(255,217,102,0.2); box-shadow: 0 0 60px rgba(255,217,102,0.05); }
+  .modal .close-hint { position: absolute; bottom: 30px; color: rgba(255,255,255,0.2); font-size: 13px; }
+
+  @media (max-width: 640px) { .card { padding: 18px; } .nav button { font-size: 11px; padding: 6px 4px; } .chat-input-row input { font-size: 13px; padding: 8px 14px; } .chat-input-row button { padding: 8px 16px; font-size: 13px; } #chatMessages { height: 220px; } }
   body.desktop-mode .nav { top: 0; bottom: auto; border-bottom: 1px solid var(--border); }
   body.mobile-mode .card { max-width: 460px; margin-left: auto; margin-right: auto; }
 </style>
@@ -576,17 +205,16 @@
   </div>
 </div>
 
-<!-- ===== COMMUNITY SEITE (CHAT & DRAW) ===== -->
+<!-- ===== COMMUNITY ===== -->
 <div class="page" id="community">
   <div class="card" style="max-width: 1200px;">
-    <h1 id="communityTitle" style="margin-bottom: 20px;">💬 Community</h1>
-    
+    <h1 id="communityTitle" style="margin-bottom: 20px;"></h1>
     <div class="chat-container">
       <div class="chat-grid">
         <!-- CHAT -->
         <div class="chat-panel">
           <div class="chat-panel-title">
-            <span>📨 Chat</span>
+            <span id="chatPanelTitle">📨 Chat</span>
             <span class="badge" id="chatUserCount">0 online</span>
             <span class="online-indicator" style="margin-left: auto;">
               <span class="online-dot" id="chatOnlineDot"></span>
@@ -599,30 +227,50 @@
             <input type="text" id="chatInput" placeholder="Nachricht..." maxlength="500" disabled>
             <button id="chatSendBtn" disabled>Senden</button>
           </div>
-          <div id="chatNameStatus" class="name-status checking">🔍 Name prüfen...</div>
-          <div class="chat-status-bar" id="chatStatusText">✦ verbinde zu Firebase...</div>
-          <div class="connection-error" id="chatConnectionError">
-            ⚠️ Verbindung fehlgeschlagen. Bitte Seite neu laden.
+          <div id="chatNameStatus" class="name-status checking">📝 Wähle einen Namen</div>
+          <div class="admin-bar">
+            <button id="adminToggleBtn">🔒 Admin</button>
+            <span id="adminStatus" style="font-size:10px;opacity:0.3;">inaktiv</span>
           </div>
+          <div class="admin-panel" id="adminPanel">
+            <h4>🔐 Admin-Bereich</h4>
+            <div class="ban-input-row">
+              <input type="password" id="adminPassword" placeholder="Passwort" style="width:120px;">
+              <button id="adminLoginBtn">Login</button>
+            </div>
+            <div id="adminContent" style="display:none;margin-top:10px;">
+              <h4>🚫 Gebannte Nutzer</h4>
+              <ul class="ban-list" id="banList"></ul>
+              <div class="ban-input-row">
+                <input type="text" id="banInput" placeholder="Name bannen" maxlength="20">
+                <button id="banBtn">Bannen</button>
+              </div>
+              <div class="ban-info">⚠️ Gebannte Nutzer können weder chatten noch malen.</div>
+            </div>
+          </div>
+          <div class="chat-status-bar" id="chatStatusText">✦ verbinde zu Firebase...</div>
+          <div class="connection-error" id="chatConnectionError">⚠️ Verbindung fehlgeschlagen.</div>
         </div>
 
-        <!-- ZEICHNEN -->
+        <!-- PIXEL -->
         <div class="chat-panel">
           <div class="chat-panel-title">
-            <span>🎨 Zeichnen</span>
-            <span class="badge">Stift</span>
+            <span id="pixelPanelTitle">🎨 PixelPlace</span>
+            <span class="badge" id="pixelCounter">0 Pixel</span>
           </div>
-          <canvas id="drawCanvas"></canvas>
-          <div class="draw-tools">
-            <label>Farbe</label>
-            <input type="color" id="drawColor" value="#ffd966">
-            <label>Größe</label>
-            <input type="range" id="drawSize" min="1" max="20" value="4">
-            <button id="undoBtn" title="Rückgängig">↩</button>
-            <button id="clearDrawBtn" class="clear-btn" title="Löschen">✕</button>
-            <button id="sendDrawBtn" class="send-draw-btn">📤 Senden</button>
+          <div class="canvas-wrapper" id="canvasWrapper">
+            <div id="pixelCanvas"></div>
           </div>
-          <div class="chat-status-bar">✏️ Zeichne und sende ins Chat</div>
+          <div class="tools">
+            <label id="colorLabel">Farbe</label>
+            <input type="color" id="pixelColor" value="#ffd966">
+            <button id="zoomInBtn" class="zoom-btn">➕</button>
+            <span class="zoom-level" id="zoomLevel">100%</span>
+            <button id="zoomOutBtn" class="zoom-btn">➖</button>
+            <button id="resetZoomBtn" class="zoom-btn">⟲</button>
+            <button id="clearCanvasBtn" class="clear-btn">🗑 <span id="clearBtnText">Leeren</span></button>
+          </div>
+          <div class="chat-status-bar" id="pixelStatus">✏️ Zeichne und teile</div>
         </div>
       </div>
     </div>
@@ -660,7 +308,7 @@
 
 <script>
 // ============================================================
-// FIREBASE KONFIGURATION - KORRIGIERT!
+// FIREBASE KONFIGURATION
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyBoVaFsMDj72yBF_eslbBke7I1Ifx2iESo",
@@ -672,9 +320,6 @@ const firebaseConfig = {
   appId: "1:506848957787:web:94e4d50b30b3fb1a6db67e"
 };
 
-// ============================================================
-// FIREBASE INIT
-// ============================================================
 try {
   firebase.initializeApp(firebaseConfig);
   console.log('✅ Firebase initialisiert');
@@ -860,6 +505,159 @@ function setBackgroundMode(mode) {
 }
 
 // ============================================================
+// ADMIN & BAN SYSTEM
+// ============================================================
+const ADMIN_PASSWORD = 'eymen3838';
+
+let isAdmin = false;
+let bannedUsers = [];
+let currentUser = null;
+let currentUserRef = null;
+
+// ============================================================
+// BAN-LISTE LADEN
+// ============================================================
+function loadBans() {
+  database.ref('bans').once('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      bannedUsers = Object.values(data);
+    } else {
+      bannedUsers = [];
+    }
+    updateBanListUI();
+  });
+}
+
+database.ref('bans').on('value', (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    bannedUsers = Object.values(data);
+  } else {
+    bannedUsers = [];
+  }
+  updateBanListUI();
+});
+
+// ============================================================
+// BAN-CHECK
+// ============================================================
+function isBanned(name) {
+  if (!name) return false;
+  return bannedUsers.some(b => b.toLowerCase() === name.toLowerCase());
+}
+
+// ============================================================
+// BAN-FUNKTIONEN
+// ============================================================
+function banUser(name) {
+  if (!name || name.trim() === '') return;
+  const trimmedName = name.trim();
+  if (isBanned(trimmedName)) {
+    alert(`⚠️ "${trimmedName}" ist bereits gebannt.`);
+    return;
+  }
+  database.ref('bans').push(trimmedName);
+  addSystemMessage(`⛔ "${trimmedName}" wurde gebannt.`);
+}
+
+function unbanUser(name) {
+  if (!name || name.trim() === '') return;
+  const trimmedName = name.trim();
+  database.ref('bans').once('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      for (let key in data) {
+        if (data[key].toLowerCase() === trimmedName.toLowerCase()) {
+          database.ref('bans/' + key).remove();
+          addSystemMessage(`✅ "${trimmedName}" wurde entbannt.`);
+          break;
+        }
+      }
+    }
+  });
+}
+
+function updateBanListUI() {
+  const list = document.getElementById('banList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (bannedUsers.length === 0) {
+    list.innerHTML = '<li style="opacity:0.3;font-style:italic;">Keine gebannten Nutzer</li>';
+    return;
+  }
+  bannedUsers.forEach(name => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <span>⛔ ${name}</span>
+      <button class="unban-btn" onclick="unbanUser('${name}')">Entbannen</button>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ============================================================
+// NACHRICHT LÖSCHEN
+// ============================================================
+function deleteMessage(msgId) {
+  if (!isAdmin) {
+    addSystemMessage('🔒 Nur Admins können Nachrichten löschen.');
+    return;
+  }
+  if (confirm('Diese Nachricht wirklich löschen?')) {
+    database.ref('chat/' + msgId).remove();
+    addSystemMessage('🗑️ Nachricht wurde gelöscht.');
+  }
+}
+
+// ============================================================
+// ADMIN-UI
+// ============================================================
+document.getElementById('adminToggleBtn').addEventListener('click', () => {
+  const panel = document.getElementById('adminPanel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) {
+    document.getElementById('adminStatus').textContent = '🔓 geöffnet';
+  } else {
+    document.getElementById('adminStatus').textContent = 'inaktiv';
+    document.getElementById('adminContent').style.display = 'none';
+  }
+});
+
+document.getElementById('adminLoginBtn').addEventListener('click', () => {
+  const password = document.getElementById('adminPassword').value;
+  if (password === ADMIN_PASSWORD) {
+    isAdmin = true;
+    document.getElementById('adminContent').style.display = 'block';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminStatus').textContent = '✅ aktiv';
+    document.getElementById('adminToggleBtn').classList.add('admin-active');
+    loadBans();
+    addSystemMessage('🔓 Admin-Modus aktiviert');
+    document.querySelectorAll('.delete-btn').forEach(btn => btn.classList.remove('hidden'));
+  } else {
+    alert('❌ Falsches Passwort!');
+    document.getElementById('adminPassword').value = '';
+  }
+});
+
+document.getElementById('banBtn').addEventListener('click', () => {
+  if (!isAdmin) {
+    alert('⚠️ Bitte zuerst als Admin anmelden.');
+    return;
+  }
+  const name = document.getElementById('banInput').value.trim();
+  if (name) {
+    banUser(name);
+    document.getElementById('banInput').value = '';
+  }
+});
+
+document.getElementById('banInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('banBtn').click();
+});
+
+// ============================================================
 // BELEIDIGUNGS-FILTER
 // ============================================================
 const badWords = [
@@ -876,7 +674,7 @@ function filterBadWords(text) {
 }
 
 // ============================================================
-// CHAT LOGIK
+// CHAT
 // ============================================================
 const chatMessages = document.getElementById('chatMessages');
 const chatInput = document.getElementById('chatInput');
@@ -889,20 +687,15 @@ const chatOnlineDot = document.getElementById('chatOnlineDot');
 const chatNameStatus = document.getElementById('chatNameStatus');
 const chatConnectionError = document.getElementById('chatConnectionError');
 
-let currentUser = null;
-let currentUserRef = null;
 let isNameTaken = false;
 let isNameChecking = false;
 let chatLoaded = false;
 
-// Name aus localStorage laden
-const savedChatName = localStorage.getItem('mundangariaChatUser') || '';
-if (savedChatName) {
-  chatUsernameInput.value = savedChatName;
-}
+const savedName = localStorage.getItem('mundangariaChatUser') || '';
+if (savedName) chatUsernameInput.value = savedName;
 
 // ============================================================
-// NAME PRÜFEN & RESERVIEREN
+// NAME PRÜFEN
 // ============================================================
 async function checkAndReserveChatName(name) {
   if (!name || name.trim() === '') {
@@ -914,6 +707,15 @@ async function checkAndReserveChatName(name) {
   }
 
   const trimmedName = name.trim();
+  
+  if (isBanned(trimmedName)) {
+    chatNameStatus.textContent = `⛔ "${trimmedName}" ist gebannt!`;
+    chatNameStatus.className = 'name-status taken';
+    isNameTaken = true;
+    updateChatState();
+    return false;
+  }
+
   isNameChecking = true;
   chatNameStatus.textContent = '🔍 Name wird geprüft...';
   chatNameStatus.className = 'name-status checking';
@@ -950,11 +752,13 @@ async function checkAndReserveChatName(name) {
 
 function updateChatState() {
   const name = chatUsernameInput.value.trim();
-  const canChat = !isNameTaken && !isNameChecking && name.length > 0;
+  const canChat = !isNameTaken && !isNameChecking && name.length > 0 && !isBanned(name);
   chatInput.disabled = !canChat;
   chatSendBtn.disabled = !canChat;
 
-  if (isNameTaken) {
+  if (isBanned(name)) {
+    chatInput.placeholder = '⛔ Du bist gebannt!';
+  } else if (isNameTaken) {
     chatInput.placeholder = '⚠️ Name bereits vergeben';
   } else if (isNameChecking) {
     chatInput.placeholder = '🔍 Name wird geprüft...';
@@ -989,6 +793,10 @@ chatUsernameInput.addEventListener('input', () => {
 // ============================================================
 function registerChatUser(name) {
   if (isNameTaken || isNameChecking) return;
+  if (isBanned(name)) {
+    addSystemMessage(`⛔ "${name}" ist gebannt!`);
+    return;
+  }
   
   if (currentUserRef) {
     currentUserRef.remove();
@@ -1014,8 +822,9 @@ function registerChatUser(name) {
 // ============================================================
 database.ref('chat').limitToLast(100).on('child_added', (snapshot) => {
   const msg = snapshot.val();
+  const msgId = snapshot.key;
   if (msg) {
-    appendChatMessage(msg);
+    appendChatMessage(msg, msgId);
     if (!chatLoaded) {
       chatLoaded = true;
       chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1023,14 +832,34 @@ database.ref('chat').limitToLast(100).on('child_added', (snapshot) => {
   }
 });
 
-function appendChatMessage(msg) {
+database.ref('chat').on('child_removed', (snapshot) => {
+  chatMessages.innerHTML = '';
+  database.ref('chat').limitToLast(100).once('value', (snap) => {
+    snap.forEach((child) => {
+      const msg = child.val();
+      const msgId = child.key;
+      if (msg) appendChatMessage(msg, msgId);
+    });
+  });
+});
+
+function appendChatMessage(msg, msgId) {
   const div = document.createElement('div');
+  const isBannedUser = isBanned(msg.user);
+  const isDeleted = msg.deleted === true;
+  
   div.className = 'msg';
+  if (isBannedUser) div.classList.add('banned-msg');
+  if (isDeleted) div.classList.add('deleted-msg');
+  
   const time = new Date(msg.time).toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
 
-  if (msg.type === 'draw') {
-    div.innerHTML = `
-      <span class="user">${msg.user || 'Unbekannt'}</span>
+  let content = '';
+  if (isDeleted) {
+    content = `<span style="opacity:0.4;">[Nachricht gelöscht]</span>`;
+  } else if (msg.type === 'draw') {
+    content = `
+      <span class="user" onclick="openUserMenu('${msg.user}')">${msg.user}</span>
       <span class="draw-badge">🖼 Zeichnung</span>
       <span class="time">${time}</span>
       <div class="draw-preview" onclick="openDraw('${msg.imageData}')">
@@ -1039,22 +868,58 @@ function appendChatMessage(msg) {
     `;
   } else {
     const filtered = filterBadWords(msg.text || '');
-    div.innerHTML = `<span class="user">${msg.user || 'Unbekannt'}</span>${filtered}<span class="time">${time}</span>`;
+    content = `
+      <span class="user" onclick="openUserMenu('${msg.user}')">${msg.user}</span>
+      ${filtered}
+      <span class="time">${time}</span>
+      ${isBannedUser ? ' ⛔' : ''}
+    `;
   }
 
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'msg-content';
+  contentDiv.innerHTML = content;
+  div.appendChild(contentDiv);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-btn' + (isAdmin ? '' : ' hidden');
+  deleteBtn.innerHTML = '✕';
+  deleteBtn.title = 'Nachricht löschen';
+  deleteBtn.onclick = () => deleteMessage(msgId);
+  div.appendChild(deleteBtn);
+
   chatMessages.appendChild(div);
-  if (chatMessages.children.length > 100) {
-    chatMessages.removeChild(chatMessages.firstChild);
-  }
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function addChatSystemMessage(text) {
+function addSystemMessage(text) {
   const div = document.createElement('div');
   div.className = 'msg system';
-  div.textContent = '✦ ' + text;
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'msg-content';
+  contentDiv.textContent = '✦ ' + text;
+  div.appendChild(contentDiv);
   chatMessages.appendChild(div);
   chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// ============================================================
+// USER MENU (zum Bannen)
+// ============================================================
+function openUserMenu(username) {
+  if (!isAdmin) {
+    addSystemMessage('🔒 Nur Admins können Nutzer verwalten.');
+    return;
+  }
+  if (isBanned(username)) {
+    if (confirm(`"${username}" entbannen?`)) {
+      unbanUser(username);
+    }
+  } else {
+    if (confirm(`"${username}" bannen? Der Nutzer kann dann weder chatten noch malen.`)) {
+      banUser(username);
+    }
+  }
 }
 
 // ============================================================
@@ -1065,12 +930,16 @@ function sendChatMessage() {
   const user = chatUsernameInput.value.trim();
   
   if (!text) return;
+  if (isBanned(user)) {
+    addSystemMessage('⛔ Du bist gebannt und kannst nicht schreiben.');
+    return;
+  }
   if (isNameTaken || isNameChecking) {
-    addChatSystemMessage('⚠️ Wähle zuerst einen verfügbaren Namen');
+    addSystemMessage('⚠️ Wähle zuerst einen verfügbaren Namen');
     return;
   }
   if (!user) {
-    addChatSystemMessage('⚠️ Bitte gib einen Namen ein');
+    addSystemMessage('⚠️ Bitte gib einen Namen ein');
     return;
   }
 
@@ -1086,7 +955,7 @@ function sendChatMessage() {
     chatInput.value = '';
   } catch (e) {
     console.error('Fehler beim Senden:', e);
-    addChatSystemMessage('⚠️ Fehler beim Senden. Bitte versuche es später erneut.');
+    addSystemMessage('⚠️ Fehler beim Senden.');
   }
 }
 
@@ -1096,157 +965,7 @@ chatInput.addEventListener('keydown', (e) => {
 });
 
 // ============================================================
-// ZEICHNUNG SENDEN
-// ============================================================
-function sendDrawingToChat(imageData) {
-  const user = chatUsernameInput.value.trim();
-  if (!user || isNameTaken || isNameChecking) {
-    addChatSystemMessage('⚠️ Wähle zuerst einen verfügbaren Namen');
-    return;
-  }
-
-  const msg = {
-    user: user,
-    time: Date.now(),
-    type: 'draw',
-    imageData: imageData
-  };
-  try {
-    database.ref('chat').push(msg);
-  } catch (e) {
-    console.error('Fehler beim Senden der Zeichnung:', e);
-    addChatSystemMessage('⚠️ Fehler beim Senden der Zeichnung');
-  }
-}
-
-// ============================================================
-// ZEICHNEN (CANVAS)
-// ============================================================
-const drawCanvas = document.getElementById('drawCanvas');
-const drawCtx = drawCanvas.getContext('2d');
-const drawColorInput = document.getElementById('drawColor');
-const drawSizeInput = document.getElementById('drawSize');
-const undoBtn = document.getElementById('undoBtn');
-const clearDrawBtn = document.getElementById('clearDrawBtn');
-const sendDrawBtn = document.getElementById('sendDrawBtn');
-
-let isDrawing = false;
-let lastX, lastY;
-let drawHistory = [];
-let currentPath = [];
-
-function resizeDrawCanvas() {
-  const rect = drawCanvas.getBoundingClientRect();
-  if (rect.width > 0 && rect.height > 0) {
-    drawCanvas.width = rect.width;
-    drawCanvas.height = rect.height;
-    redrawAllDraw();
-  }
-}
-
-function redrawAllDraw() {
-  drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-  drawHistory.forEach(path => {
-    if (path.length < 2) return;
-    drawCtx.beginPath();
-    drawCtx.moveTo(path[0].x, path[0].y);
-    for (let i = 1; i < path.length; i++) {
-      drawCtx.lineTo(path[i].x, path[i].y);
-    }
-    drawCtx.strokeStyle = path[0].color || '#ffd966';
-    drawCtx.lineWidth = path[0].size || 4;
-    drawCtx.lineCap = 'round';
-    drawCtx.lineJoin = 'round';
-    drawCtx.stroke();
-  });
-}
-
-function getDrawPos(e) {
-  const rect = drawCanvas.getBoundingClientRect();
-  const cx = e.touches ? e.touches[0].clientX : e.clientX;
-  const cy = e.touches ? e.touches[0].clientY : e.clientY;
-  return {
-    x: (cx - rect.left) * (drawCanvas.width / rect.width),
-    y: (cy - rect.top) * (drawCanvas.height / rect.height)
-  };
-}
-
-function startDraw(e) {
-  e.preventDefault();
-  isDrawing = true;
-  const pos = getDrawPos(e);
-  lastX = pos.x;
-  lastY = pos.y;
-  currentPath = [{
-    x: pos.x,
-    y: pos.y,
-    color: drawColorInput.value,
-    size: parseInt(drawSizeInput.value)
-  }];
-}
-
-function draw(e) {
-  e.preventDefault();
-  if (!isDrawing) return;
-  const pos = getDrawPos(e);
-  drawCtx.beginPath();
-  drawCtx.moveTo(lastX, lastY);
-  drawCtx.lineTo(pos.x, pos.y);
-  drawCtx.strokeStyle = drawColorInput.value;
-  drawCtx.lineWidth = parseInt(drawSizeInput.value);
-  drawCtx.lineCap = 'round';
-  drawCtx.lineJoin = 'round';
-  drawCtx.stroke();
-  currentPath.push({
-    x: pos.x,
-    y: pos.y,
-    color: drawColorInput.value,
-    size: parseInt(drawSizeInput.value)
-  });
-  lastX = pos.x;
-  lastY = pos.y;
-}
-
-function stopDraw(e) {
-  e.preventDefault();
-  if (isDrawing && currentPath.length > 1) {
-    drawHistory.push([...currentPath]);
-  }
-  isDrawing = false;
-  currentPath = [];
-}
-
-drawCanvas.addEventListener('mousedown', startDraw);
-drawCanvas.addEventListener('mousemove', draw);
-drawCanvas.addEventListener('mouseup', stopDraw);
-drawCanvas.addEventListener('mouseleave', stopDraw);
-drawCanvas.addEventListener('touchstart', startDraw, { passive: false });
-drawCanvas.addEventListener('touchmove', draw, { passive: false });
-drawCanvas.addEventListener('touchend', stopDraw, { passive: false });
-
-undoBtn.addEventListener('click', () => {
-  if (drawHistory.length > 0) {
-    drawHistory.pop();
-    redrawAllDraw();
-  }
-});
-
-clearDrawBtn.addEventListener('click', () => {
-  drawHistory = [];
-  redrawAllDraw();
-});
-
-sendDrawBtn.addEventListener('click', () => {
-  if (drawHistory.length === 0) {
-    addChatSystemMessage('⚠️ Zeichne etwas, bevor du es sendest');
-    return;
-  }
-  sendDrawingToChat(drawCanvas.toDataURL('image/png'));
-  addChatSystemMessage('📤 Zeichnung wurde gesendet');
-});
-
-// ============================================================
-// ONLINE STATUS & NUTZER ZÄHLEN
+// ONLINE STATUS
 // ============================================================
 database.ref('.info/connected').on('value', (snap) => {
   if (snap.val() === true) {
@@ -1256,7 +975,7 @@ database.ref('.info/connected').on('value', (snap) => {
     chatStatusText.textContent = '✦ live verbunden';
 
     const name = chatUsernameInput.value.trim();
-    if (name && !isNameTaken && !isNameChecking) {
+    if (name && !isNameTaken && !isNameChecking && !isBanned(name)) {
       registerChatUser(name);
     }
 
@@ -1269,6 +988,195 @@ database.ref('.info/connected').on('value', (snap) => {
     chatOnlineDot.className = 'online-dot offline';
     chatConnectionError.classList.add('show');
     chatStatusText.textContent = '✦ offline - keine Verbindung';
+  }
+});
+
+// ============================================================
+// PIXEL CANVAS
+// ============================================================
+const pixelCanvas = document.getElementById('pixelCanvas');
+const canvasWrapper = document.getElementById('canvasWrapper');
+const pixelColor = document.getElementById('pixelColor');
+const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+const pixelCounterEl = document.getElementById('pixelCounter');
+const pixelStatus = document.getElementById('pixelStatus');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const resetZoomBtn = document.getElementById('resetZoomBtn');
+const zoomLevel = document.getElementById('zoomLevel');
+
+const GRID_SIZE = 50;
+let pixelData = {};
+let currentZoom = 1;
+const MIN_ZOOM = 0.15;
+const MAX_ZOOM = 10;
+const ZOOM_STEP = 0.12;
+
+// ============================================================
+// PIXEL CANVAS RENDER
+// ============================================================
+function renderPixelCanvas() {
+  pixelCanvas.innerHTML = '';
+  const totalPixels = GRID_SIZE * GRID_SIZE;
+
+  const wrapperWidth = canvasWrapper.clientWidth || 400;
+  const wrapperHeight = canvasWrapper.clientHeight || 400;
+  const baseSize = Math.min(
+    Math.floor((wrapperWidth - (GRID_SIZE + 1)) / GRID_SIZE),
+    Math.floor((wrapperHeight - (GRID_SIZE + 1)) / GRID_SIZE),
+    12
+  );
+  const pixelSize = Math.max(baseSize, 3);
+  
+  pixelCanvas.style.gridTemplateColumns = `repeat(${GRID_SIZE}, ${pixelSize}px)`;
+  pixelCanvas.style.gridTemplateRows = `repeat(${GRID_SIZE}, ${pixelSize}px)`;
+
+  for (let i = 0; i < totalPixels; i++) {
+    const pixel = document.createElement('div');
+    pixel.className = 'pixel';
+    pixel.dataset.index = i;
+    pixel.style.width = pixelSize + 'px';
+    pixel.style.height = pixelSize + 'px';
+    pixel.style.background = pixelData[i] || 'white';
+
+    pixel.addEventListener('mousedown', () => handlePixelClick(i));
+    pixel.addEventListener('mouseover', (e) => {
+      if (e.buttons === 1) handlePixelClick(i);
+    });
+
+    pixel.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      handlePixelClick(i);
+    }, { passive: false });
+
+    pixel.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.dataset && target.dataset.index !== undefined) {
+        handlePixelClick(parseInt(target.dataset.index));
+      }
+    }, { passive: false });
+
+    pixelCanvas.appendChild(pixel);
+  }
+
+  updatePixelCounter();
+  updateZoomDisplay();
+}
+
+// ============================================================
+// PIXEL SETZEN
+// ============================================================
+function handlePixelClick(index) {
+  const name = chatUsernameInput.value.trim();
+  if (isBanned(name)) {
+    addSystemMessage('⛔ Du bist gebannt und kannst nicht malen.');
+    return;
+  }
+  if (!name || isNameTaken || isNameChecking) {
+    addSystemMessage('⚠️ Wähle zuerst einen verfügbaren Namen');
+    return;
+  }
+
+  const color = pixelColor.value;
+  if (pixelData[index] === color) return;
+
+  pixelData[index] = color;
+  updatePixel(index);
+  database.ref('pixels/' + index).set(color);
+}
+
+function updatePixel(index) {
+  const pixel = pixelCanvas.children[index];
+  if (pixel) {
+    pixel.style.background = pixelData[index] || 'white';
+  }
+}
+
+function updatePixelCounter() {
+  const total = GRID_SIZE * GRID_SIZE;
+  const filled = Object.keys(pixelData).length;
+  pixelCounterEl.textContent = `${filled}/${total}`;
+}
+
+// ============================================================
+// PIXEL LIVE SYNC
+// ============================================================
+database.ref('pixels').on('child_added', (snapshot) => {
+  const index = parseInt(snapshot.key);
+  const color = snapshot.val();
+  if (!isNaN(index) && color) {
+    pixelData[index] = color;
+    updatePixel(index);
+    updatePixelCounter();
+  }
+});
+
+database.ref('pixels').on('child_changed', (snapshot) => {
+  const index = parseInt(snapshot.key);
+  const color = snapshot.val();
+  if (!isNaN(index) && color) {
+    pixelData[index] = color;
+    updatePixel(index);
+    updatePixelCounter();
+  }
+});
+
+// ============================================================
+// PIXEL ZOOM
+// ============================================================
+function updateZoomDisplay() {
+  const zoomPercent = Math.round(currentZoom * 100);
+  zoomLevel.textContent = zoomPercent + '%';
+  pixelCanvas.style.transform = `scale(${currentZoom})`;
+}
+
+function zoomIn() {
+  if (currentZoom < MAX_ZOOM) {
+    currentZoom = Math.min(currentZoom + ZOOM_STEP, MAX_ZOOM);
+    updateZoomDisplay();
+  }
+}
+
+function zoomOut() {
+  if (currentZoom > MIN_ZOOM) {
+    currentZoom = Math.max(currentZoom - ZOOM_STEP, MIN_ZOOM);
+    updateZoomDisplay();
+  }
+}
+
+function resetZoom() {
+  currentZoom = 1;
+  updateZoomDisplay();
+  canvasWrapper.scrollTop = 0;
+  canvasWrapper.scrollLeft = 0;
+}
+
+zoomInBtn.addEventListener('click', zoomIn);
+zoomOutBtn.addEventListener('click', zoomOut);
+resetZoomBtn.addEventListener('click', resetZoom);
+
+canvasWrapper.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  if (e.deltaY < 0) zoomIn();
+  else zoomOut();
+}, { passive: false });
+
+// ============================================================
+// PIXEL LEINWAND LÖSCHEN (NUR ADMIN)
+// ============================================================
+clearCanvasBtn.addEventListener('click', () => {
+  if (!isAdmin) {
+    addSystemMessage('🔒 Nur Admins können die Leinwand löschen.');
+    return;
+  }
+  if (confirm('Alle Pixel löschen? Das kann nicht rückgängig gemacht werden!')) {
+    database.ref('pixels').remove().then(() => {
+      pixelData = {};
+      renderPixelCanvas();
+      addSystemMessage('🗑️ Leinwand wurde geleert.');
+    });
   }
 });
 
@@ -1296,7 +1204,7 @@ function openPage(id) {
   window.scrollTo({top: 0, behavior: "smooth"});
   
   if (id === 'community') {
-    setTimeout(resizeDrawCanvas, 300);
+    setTimeout(renderPixelCanvas, 300);
   }
 }
 
@@ -1349,7 +1257,32 @@ const data = {
     aboutText6: "The Euro (€) serves as the official currency and means of payment in Mundangaria. All trade and financial transactions are conducted in Euros.",
     aboutText7: "Population: 1 resident and 4 members. Together, we form a small yet proud community that works collectively for the future of Mundangaria.",
     aboutText8: "Mundangaria sees itself as a hub for cultural exchange and friendly relations with other micronations worldwide. We take pride in our independence and our unique identity.",
-    communityTitle: "Community"
+    communityTitle: "Community",
+    chatPanelTitle: "Chat",
+    pixelPanelTitle: "PixelPlace",
+    colorLabel: "Color",
+    clearBtn: "Clear",
+    pixelStatus: "Draw and share",
+    namePlaceholder: "Name",
+    msgPlaceholder: "Message...",
+    sendBtn: "Send",
+    nameStatus: "Choose a name",
+    adminBtn: "Admin",
+    adminInactive: "inactive",
+    adminActive: "active",
+    adminPanel: "Admin Area",
+    adminPassword: "Password",
+    adminLogin: "Login",
+    bannedUsers: "Banned Users",
+    banPlaceholder: "Ban name",
+    banBtn: "Ban",
+    banInfo: "Banned users cannot chat or draw.",
+    connecting: "Connecting...",
+    connected: "Connected",
+    offline: "Offline",
+    live: "live connected",
+    wait: "waiting for connection...",
+    error: "Connection failed. Please reload the page."
   },
   de: {
     homeTitle: "Willkommen in Mundangaria",
@@ -1396,7 +1329,32 @@ const data = {
     aboutText6: "Der Euro (€) dient als offizielle Währung und Zahlungsmittel in Mundangaria. Der gesamte Handel und alle Finanztransaktionen werden in Euro abgewickelt.",
     aboutText7: "Bevölkerung: 1 Einwohner und 4 Mitglieder. Gemeinsam bilden wir eine kleine, aber stolze Gemeinschaft, die gemeinsam für die Zukunft von Mundangaria arbeitet.",
     aboutText8: "Mundangaria versteht sich als Ort des kulturellen Austauschs und freundschaftlicher Beziehungen zu anderen Mikronationen weltweit. Wir sind stolz auf unsere Unabhängigkeit und unsere einzigartige Identität.",
-    communityTitle: "Community"
+    communityTitle: "Community",
+    chatPanelTitle: "Chat",
+    pixelPanelTitle: "PixelPlace",
+    colorLabel: "Farbe",
+    clearBtn: "Leeren",
+    pixelStatus: "Zeichne und teile",
+    namePlaceholder: "Name",
+    msgPlaceholder: "Nachricht...",
+    sendBtn: "Senden",
+    nameStatus: "Wähle einen Namen",
+    adminBtn: "Admin",
+    adminInactive: "inaktiv",
+    adminActive: "aktiv",
+    adminPanel: "Admin-Bereich",
+    adminPassword: "Passwort",
+    adminLogin: "Login",
+    bannedUsers: "Gebannte Nutzer",
+    banPlaceholder: "Name bannen",
+    banBtn: "Bannen",
+    banInfo: "Gebannte Nutzer können weder chatten noch malen.",
+    connecting: "Verbinde...",
+    connected: "Verbunden",
+    offline: "Offline",
+    live: "live verbunden",
+    wait: "warte auf Verbindung...",
+    error: "Verbindung fehlgeschlagen. Bitte Seite neu laden."
   },
   tr: {
     homeTitle: "Mundangaria'ya Hoş Geldiniz",
@@ -1443,7 +1401,32 @@ const data = {
     aboutText6: "Euro (€), Mundangaria'da resmî para birimi ve ödeme aracı olarak hizmet eder. Tüm ticaret ve finansal işlemler Euro üzerinden yürütülür.",
     aboutText7: "Nüfus: 1 sakin ve 4 üye. Birlikte, Mundangaria'nın geleceği için ortaklaşa çalışan küçük ama gururlu bir topluluk oluşturuyoruz.",
     aboutText8: "Mundangaria, dünya çapındaki diğer mikronasyonlarla kültürel alışveriş ve dostane ilişkiler için bir merkez olarak görür. Bağımsızlığımız ve eşsiz kimliğimizle gurur duyuyoruz.",
-    communityTitle: "Topluluk"
+    communityTitle: "Topluluk",
+    chatPanelTitle: "Sohbet",
+    pixelPanelTitle: "PixelPlace",
+    colorLabel: "Renk",
+    clearBtn: "Temizle",
+    pixelStatus: "Çiz ve paylaş",
+    namePlaceholder: "İsim",
+    msgPlaceholder: "Mesaj...",
+    sendBtn: "Gönder",
+    nameStatus: "Bir isim seç",
+    adminBtn: "Admin",
+    adminInactive: "etkin değil",
+    adminActive: "etkin",
+    adminPanel: "Admin Alanı",
+    adminPassword: "Şifre",
+    adminLogin: "Giriş",
+    bannedUsers: "Yasaklanan Kullanıcılar",
+    banPlaceholder: "İsim yasakla",
+    banBtn: "Yasakla",
+    banInfo: "Yasaklanan kullanıcılar ne sohbet edebilir ne de çizim yapabilir.",
+    connecting: "Bağlanıyor...",
+    connected: "Bağlandı",
+    offline: "Çevrimdışı",
+    live: "canlı bağlı",
+    wait: "bağlantı bekleniyor...",
+    error: "Bağlantı başarısız. Lütfen sayfayı yeniden yükleyin."
   },
   bs: {
     homeTitle: "Dobrodošli u Mundangariju",
@@ -1490,7 +1473,32 @@ const data = {
     aboutText6: "Euro (€) služi kao službena valuta i sredstvo plaćanja u Mundangariji. Sva trgovina i finansijske transakcije obavljaju se u eurima.",
     aboutText7: "Stanovništvo: 1 stanovnik i 4 člana. Zajedno činimo malu, ali ponosnu zajednicu koja kolektivno radi za budućnost Mundangarije.",
     aboutText8: "Mundangaria sebe vidi kao centar za kulturnu razmjenu i prijateljske odnose s drugim mikronacijama širom svijeta. Ponosni smo na našu nezavisnost i naš jedinstveni identitet.",
-    communityTitle: "Zajednica"
+    communityTitle: "Zajednica",
+    chatPanelTitle: "Chat",
+    pixelPanelTitle: "PixelPlace",
+    colorLabel: "Boja",
+    clearBtn: "Obriši",
+    pixelStatus: "Crtaj i dijeli",
+    namePlaceholder: "Ime",
+    msgPlaceholder: "Poruka...",
+    sendBtn: "Pošalji",
+    nameStatus: "Odaberi ime",
+    adminBtn: "Admin",
+    adminInactive: "neaktivan",
+    adminActive: "aktivan",
+    adminPanel: "Admin Područje",
+    adminPassword: "Lozinka",
+    adminLogin: "Prijava",
+    bannedUsers: "Zabranjeni Korisnici",
+    banPlaceholder: "Zabrani ime",
+    banBtn: "Zabrani",
+    banInfo: "Zabranjeni korisnici ne mogu ni chatati ni crtati.",
+    connecting: "Povezivanje...",
+    connected: "Povezan",
+    offline: "Offline",
+    live: "live povezan",
+    wait: "čekam vezu...",
+    error: "Veza neuspješna. Molimo osvježite stranicu."
   },
   ar: {
     homeTitle: "مرحباً في موندانغاريا",
@@ -1537,7 +1545,32 @@ const data = {
     aboutText6: "اليورو (€) هو العملة الرسمية ووسيلة الدفع في موندانغاريا. تتم جميع التجارة والمعاملات المالية باليورو.",
     aboutText7: "عدد السكان: ساكن واحد و 4 أعضاء. نشكل معاً مجتمعاً صغيراً لكن فخوراً يعمل بشكل جماعي من أجل مستقبل موندانغاريا.",
     aboutText8: "ترى موندانغاريا نفسها كمركز للتبادل الثقافي والعلاقات الودية مع الدول المجهرية الأخرى في جميع أنحاء العالم. نحن فخورون باستقلالنا وهويتنا الفريدة.",
-    communityTitle: "المجتمع"
+    communityTitle: "المجتمع",
+    chatPanelTitle: "دردشة",
+    pixelPanelTitle: "بكسل بليس",
+    colorLabel: "اللون",
+    clearBtn: "مسح",
+    pixelStatus: "ارسم وشارك",
+    namePlaceholder: "الاسم",
+    msgPlaceholder: "رسالة...",
+    sendBtn: "إرسال",
+    nameStatus: "اختر اسماً",
+    adminBtn: "مدير",
+    adminInactive: "غير نشط",
+    adminActive: "نشط",
+    adminPanel: "منطقة المدير",
+    adminPassword: "كلمة المرور",
+    adminLogin: "تسجيل الدخول",
+    bannedUsers: "المستخدمون المحظورون",
+    banPlaceholder: "حظر اسم",
+    banBtn: "حظر",
+    banInfo: "لا يمكن للمستخدمين المحظورين الدردشة أو الرسم.",
+    connecting: "جارٍ الاتصال...",
+    connected: "متصل",
+    offline: "غير متصل",
+    live: "متصل مباشر",
+    wait: "في انتظار الاتصال...",
+    error: "فشل الاتصال. يرجى إعادة تحميل الصفحة."
   }
 };
 
@@ -1575,7 +1608,7 @@ const microInfo = {
 };
 
 // ============================================================
-// SPRACHE & THEME
+// SPRACHE SETZEN (inkl. Community)
 // ============================================================
 function setLang(lang) {
   const d = data[lang] || data.de;
@@ -1584,6 +1617,7 @@ function setLang(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
 
+  // ===== Hauptseite =====
   document.getElementById("homeTitle").innerText = d.homeTitle;
   document.getElementById("homeText").innerText = d.homeText;
   document.getElementById("symbolsTitle").innerText = d.symbolsTitle;
@@ -1631,8 +1665,30 @@ function setLang(lang) {
   document.getElementById("warExtra3").innerHTML = d.warExtra3;
   document.getElementById("backBtn").innerText = d.back;
 
+  // ===== COMMUNITY SEITE =====
   document.getElementById("communityTitle").innerText = d.communityTitle;
-
+  document.getElementById("chatPanelTitle").innerHTML = d.chatPanelTitle;
+  document.getElementById("pixelPanelTitle").innerHTML = d.pixelPanelTitle;
+  document.getElementById("colorLabel").innerText = d.colorLabel;
+  document.getElementById("clearBtnText").innerText = d.clearBtn;
+  document.getElementById("pixelStatus").innerText = d.pixelStatus;
+  document.getElementById("chatUsernameInput").placeholder = d.namePlaceholder;
+  document.getElementById("chatInput").placeholder = d.msgPlaceholder;
+  document.getElementById("chatSendBtn").innerText = d.sendBtn;
+  document.getElementById("chatNameStatus").textContent = d.nameStatus;
+  document.getElementById("adminToggleBtn").innerHTML = d.adminBtn;
+  document.getElementById("adminStatus").textContent = d.adminInactive;
+  document.querySelector("#adminPanel h4").innerHTML = d.adminPanel;
+  document.getElementById("adminPassword").placeholder = d.adminPassword;
+  document.getElementById("adminLoginBtn").innerText = d.adminLogin;
+  document.querySelector("#adminContent h4").innerHTML = d.bannedUsers;
+  document.getElementById("banInput").placeholder = d.banPlaceholder;
+  document.getElementById("banBtn").innerText = d.banBtn;
+  document.querySelector(".ban-info").innerHTML = d.banInfo;
+  document.getElementById("chatConnectionStatus").textContent = d.connecting;
+  document.getElementById("chatStatusText").textContent = d.wait;
+  
+  // Navigation
   const navNames = {
     navHome: d.navHome,
     navAbout: d.navAbout,
@@ -1645,13 +1701,16 @@ function setLang(lang) {
     if (document.getElementById(id)) document.getElementById(id).innerText = txt;
   }
 
-  document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "Light Mode" : "Dark Mode";
+  document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "☀️ Light Mode" : "🌙 Dark Mode";
 }
 
+// ============================================================
+// THEME & MODE
+// ============================================================
 function toggleTheme() {
   document.body.classList.toggle("light");
   const isLight = document.body.classList.contains("light");
-  document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
+  document.getElementById("themeBtn").innerText = isLight ? "☀️ Light Mode" : "🌙 Dark Mode";
   localStorage.setItem("theme", isLight ? "light" : "dark");
   if (currentBgMode === 1) { stopCurrentAnimation(); startBackground1(); }
 }
@@ -1686,8 +1745,9 @@ document.addEventListener("DOMContentLoaded", () => {
   flagImage.src = "https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg";
   setBackgroundMode(savedBgMode);
 
-  setTimeout(resizeDrawCanvas, 300);
-  chatStatusText.textContent = '✦ warte auf Verbindung...';
+  loadBans();
+  setTimeout(renderPixelCanvas, 300);
+  chatStatusText.textContent = '✦ ' + data[savedLang].wait;
 });
 </script>
 </body>
