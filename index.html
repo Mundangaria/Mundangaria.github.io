@@ -1415,7 +1415,7 @@
         }
 
         // ============================================================
-        // BANANA EASTER EGG - AUDIO NUR EINMAL BEI 50 KLICKS
+        // BANANA EASTER EGG - AUDIO NUR EINMAL BEI 50 KLICKS - ALLE SPRACHEN
         // ============================================================
         let coatClickCount = 0;
         let bananaActive = false;
@@ -1578,12 +1578,16 @@
             coatClickCount++;
             console.log(`🦧 Wappen geklickt: ${coatClickCount} mal`);
 
+            // Aktuelle Sprache für Übersetzungen
+            const currentLang = localStorage.getItem("lang") || "de";
+            const langData = data[currentLang] || data.de;
+
             // Level 1: Bei 5 Klicks - Bananen-Hintergrund
             if (coatClickCount === 5) {
                 bananaActive = true;
                 bananaOverlay.classList.add('active');
                 createBananaParticles();
-                showBananaMessage('🍌 BANANEN-ZEIT! 🍌');
+                showBananaMessage(langData.bananaMessage1 || '🍌 BANANEN-ZEIT! 🍌');
 
                 if (window.bananaInterval) clearInterval(window.bananaInterval);
                 window.bananaInterval = setInterval(() => {
@@ -1597,12 +1601,12 @@
             if (coatClickCount === 10) {
                 createBananaParticles();
                 createBananaParticles();
-                showBananaMessage('🍌🍌🍌 BANANEN-REGEN! 🍌🍌🍌');
+                showBananaMessage(langData.bananaMessage2 || '🍌🍌🍌 BANANEN-REGEN! 🍌🍌🍌');
             }
 
             // Level 3: Bei 50 Klicks - AUDIO NUR EINMAL + Orangutan sagt Stop
             if (coatClickCount === 50) {
-                showBananaMessage('🦧 HÖR AUF, MICH ZU DRÜCKEN! 🍌');
+                showBananaMessage(langData.bananaMessage3 || '🦧 HÖR AUF, MICH ZU DRÜCKEN! 🍌');
 
                 // 🎵 Sound NUR EINMAL abspielen!
                 playOrangutanSound();
@@ -1629,7 +1633,10 @@
             if (coatClickCount > 10 && coatClickCount < 50 && coatClickCount % 3 === 0) {
                 createBananaParticles();
                 if (coatClickCount % 6 === 0) {
-                    showBananaMessage(`🦧 ${coatClickCount} mal... noch ${50 - coatClickCount} bis zum Sound!`);
+                    const progressMsg = typeof langData.bananaProgress === 'function' ?
+                        langData.bananaProgress(coatClickCount) :
+                        `🦧 ${coatClickCount} mal... noch ${50 - coatClickCount} bis zum Sound!`;
+                    showBananaMessage(progressMsg);
                 }
             }
 
@@ -2419,7 +2426,14 @@
                 chatDrawSendBtn: "Draw",
                 chatDrawClearBtn: "🗑",
                 adminPanelTitle: "🔐 Admin Area",
-                bannedUsersTitle: "🚫 Banned Users"
+                bannedUsersTitle: "🚫 Banned Users",
+                // Banana Easter Egg Messages
+                bananaMessage1: "🍌 BANANA TIME! 🍌",
+                bananaMessage2: "🍌🍌🍌 BANANA RAIN! 🍌🍌🍌",
+                bananaMessage3: "🦧 STOP PRESSING ME! 🍌",
+                bananaProgress: function(count) {
+                    return `🦧 ${count} times... ${50 - count} more until the sound!`;
+                }
             },
             de: {
                 homeTitle: "Willkommen in Mundangaria",
@@ -2497,7 +2511,14 @@
                 chatDrawSendBtn: "Zeichnen",
                 chatDrawClearBtn: "🗑",
                 adminPanelTitle: "🔐 Admin-Bereich",
-                bannedUsersTitle: "🚫 Gebannte Nutzer"
+                bannedUsersTitle: "🚫 Gebannte Nutzer",
+                // Banana Easter Egg Messages
+                bananaMessage1: "🍌 BANANEN-ZEIT! 🍌",
+                bananaMessage2: "🍌🍌🍌 BANANEN-REGEN! 🍌🍌🍌",
+                bananaMessage3: "🦧 HÖR AUF, MICH ZU DRÜCKEN! 🍌",
+                bananaProgress: function(count) {
+                    return `🦧 ${count} mal... noch ${50 - count} bis zum Sound!`;
+                }
             },
             tr: {
                 homeTitle: "Mundangaria'ya Hoş Geldiniz",
@@ -2575,7 +2596,14 @@
                 chatDrawSendBtn: "Çiz",
                 chatDrawClearBtn: "🗑",
                 adminPanelTitle: "🔐 Admin Alanı",
-                bannedUsersTitle: "🚫 Yasaklanan Kullanıcılar"
+                bannedUsersTitle: "🚫 Yasaklanan Kullanıcılar",
+                // Banana Easter Egg Messages
+                bananaMessage1: "🍌 MUZ ZAMANI! 🍌",
+                bananaMessage2: "🍌🍌🍌 MUZ YAĞMURU! 🍌🍌🍌",
+                bananaMessage3: "🦧 BENİ DÜRTTÜRMEYİ KES! 🍌",
+                bananaProgress: function(count) {
+                    return `🦧 ${count} kez... sese ${50 - count} kaldı!`;
+                }
             },
             bs: {
                 homeTitle: "Dobrodošli u Mundangariju",
@@ -2653,7 +2681,14 @@
                 chatDrawSendBtn: "Crtaj",
                 chatDrawClearBtn: "🗑",
                 adminPanelTitle: "🔐 Admin Područje",
-                bannedUsersTitle: "🚫 Zabranjeni Korisnici"
+                bannedUsersTitle: "🚫 Zabranjeni Korisnici",
+                // Banana Easter Egg Messages
+                bananaMessage1: "🍌 BANANA VRIJEME! 🍌",
+                bananaMessage2: "🍌🍌🍌 BANANA KIŠA! 🍌🍌🍌",
+                bananaMessage3: "🦧 PRESTANI ME PRITISKATI! 🍌",
+                bananaProgress: function(count) {
+                    return `🦧 ${count} puta... još ${50 - count} do zvuka!`;
+                }
             },
             ar: {
                 homeTitle: "مرحباً في موندانغاريا",
@@ -2731,7 +2766,14 @@
                 chatDrawSendBtn: "ارسم",
                 chatDrawClearBtn: "🗑",
                 adminPanelTitle: "🔐 منطقة المدير",
-                bannedUsersTitle: "🚫 المستخدمون المحظورون"
+                bannedUsersTitle: "🚫 المستخدمون المحظورون",
+                // Banana Easter Egg Messages
+                bananaMessage1: "🍌 وقت الموز! 🍌",
+                bananaMessage2: "🍌🍌🍌 مطر الموز! 🍌🍌🍌",
+                bananaMessage3: "🦧 توقف عن الضغط علي! 🍌",
+                bananaProgress: function(count) {
+                    return `🦧 ${count} مرة... ${50 - count} حتى الصوت!`;
+                }
             }
         };
 
