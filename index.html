@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
+    <meta name="description" content="Die Republik Mundangaria – eine muslimische Mikronation in Stuttgart, Deutschland. Gegründet 2025. Mit Community-Chat, PixelCanvas und mehr.">
+    <meta name="keywords" content="Mundangaria, Mikronation, Stuttgart, Islam, Republik, Sunland, Community">
     <title>Mundangaria · Mikronation</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js">
     </script>
     <style>
+        /* ===== ALLE STYLES ===== */
         * {
             margin: 0;
             padding: 0;
@@ -1209,7 +1212,7 @@
 
     <canvas id="bgCanvas"></canvas>
 
-    <!-- BANANA EASTER EGG (nur für Funktion, keine Emojis im Text) -->
+    <!-- BANANA EASTER EGG -->
     <div class="banana-overlay" id="bananaOverlay"></div>
     <div class="banana-message" id="bananaMessage">
         <span class="banana-emoji">🦧</span>
@@ -1308,7 +1311,7 @@
 
             <p id="newsSunlandText">Am <b>10. Juli 2026</b> unterzeichnete die Republik Mundangaria einen historischen Vertrag mit der <b>Republik Sunland</b>. Dieser Vertrag sieht die vorübergehende Annexion Sunlands für einen Zeitraum von <b>drei Tagen</b> vor. Dies markiert die erste territoriale Expansion in der Geschichte Mundangarias.</p>
 
-            <!-- VERTRAG ALS TEXT (ohne Emojis) -->
+            <!-- VERTRAG ALS TEXT -->
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,217,102,0.2); border-radius: 16px; padding: 20px 24px; margin-top: 16px; text-align: left;">
                 <h4 style="color: #ffd966; text-align: center; margin-bottom: 12px;">TREATY ON THE TEMPORARY ANNEXATION OF SUNLAND</h4>
                 <p style="font-size: 14px; opacity: 0.7; text-align: center; margin-bottom: 16px;">Between the Republic of Mündangaria and the Republic of Sunland</p>
@@ -1521,7 +1524,7 @@
         const database = firebase.database();
 
         // ============================================================
-        // HINTERGRUND - FUNKTIONIERT ZU 100%
+        // HINTERGRUND - KOMPLETT ÜBERARBEITET & FUNKTIONIERT
         // ============================================================
         let bgAnimationId = null;
         const bgCanvas = document.getElementById('bgCanvas');
@@ -1531,6 +1534,7 @@
         let bgMouseX = -1000,
             bgMouseY = -1000,
             bgMousePresent = false;
+        let currentBgMode = 1;
 
         // Flagge für Hintergrund 2
         const bgFlagImage = new Image();
@@ -1590,7 +1594,10 @@
         }
 
         function drawBgParticles() {
-            if (!bgCtx) return;
+            if (!bgCtx) {
+                console.warn('Kein Canvas-Kontext!');
+                return;
+            }
             const isLight = document.body.classList.contains('light');
             bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
@@ -1628,9 +1635,7 @@
             for (let p of bgParticles) {
                 bgCtx.beginPath();
                 bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                bgCtx.fillStyle = isLight ?
-                    `hsla(${p.hue}, 70%, 50%, 0.5)` :
-                    `hsla(${p.hue}, 85%, 65%, 0.7)`;
+                bgCtx.fillStyle = isLight ? `hsla(${p.hue}, 70%, 50%, 0.5)` : `hsla(${p.hue}, 85%, 65%, 0.7)`;
                 bgCtx.shadowBlur = 6;
                 bgCtx.shadowColor = isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,200,0.4)';
                 bgCtx.fill();
@@ -1646,16 +1651,23 @@
                 bgCtx.fillRect(bgMouseX - 100, bgMouseY - 100, 200, 200);
             }
 
+            // *** WICHTIG: Partikel aktualisieren und neu zeichnen ***
+            updateBgParticles();
+            
+            // Animation fortsetzen
             bgAnimationId = requestAnimationFrame(drawBgParticles);
         }
 
         // Hintergrund 2: Verschwommene Flagge
         function drawBgFlag() {
-            if (!bgCtx) return;
+            if (!bgCtx) {
+                console.warn('Kein Canvas-Kontext!');
+                return;
+            }
             const isLight = document.body.classList.contains('light');
             bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
-            // Dunkler Hintergrund
+            // Hintergrund
             const grad = bgCtx.createLinearGradient(0, 0, bgWidth, bgHeight);
             if (isLight) {
                 grad.addColorStop(0, '#e0e5f0');
@@ -1674,19 +1686,6 @@
                 bgCtx.drawImage(bgFlagImage, 0, 0, bgWidth, bgHeight);
                 bgCtx.filter = 'none';
                 bgCtx.globalAlpha = 1.0;
-            } else {
-                // Fallback: Textur
-                for (let i = 0; i < 50; i++) {
-                    const x = Math.random() * bgWidth;
-                    const y = Math.random() * bgHeight;
-                    const size = Math.random() * 30 + 10;
-                    bgCtx.beginPath();
-                    bgCtx.arc(x, y, size, 0, Math.PI * 2);
-                    bgCtx.fillStyle = isLight ?
-                        `rgba(100, 100, 150, 0.03)` :
-                        `rgba(255, 255, 255, 0.02)`;
-                    bgCtx.fill();
-                }
             }
 
             // Maus-Glow
@@ -1698,14 +1697,19 @@
                 bgCtx.fillRect(bgMouseX - 150, bgMouseY - 150, 300, 300);
             }
 
+            // Animation fortsetzen (für Maus-Glow)
             bgAnimationId = requestAnimationFrame(drawBgFlag);
         }
 
-        let currentBgMode = 1;
-
         function startBackground(mode) {
-            if (bgAnimationId) cancelAnimationFrame(bgAnimationId);
+            // Alte Animation stoppen
+            if (bgAnimationId) {
+                cancelAnimationFrame(bgAnimationId);
+                bgAnimationId = null;
+            }
+
             resizeBgCanvas();
+
             if (mode === 1) {
                 initBgParticles();
                 drawBgParticles();
@@ -1732,6 +1736,7 @@
             const isLight = document.body.classList.contains("light");
             document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
             localStorage.setItem("theme", isLight ? "light" : "dark");
+            // Hintergrund neu starten für Farbwechsel
             startBackground(currentBgMode);
         }
 
@@ -2504,7 +2509,7 @@
         modal.addEventListener('click', () => { modal.classList.remove('active'); });
 
         // ============================================================
-        // BANANA EASTER EGG (vereinfacht)
+        // BANANA EASTER EGG
         // ============================================================
         let coatClickCount = 0;
         let bananaActive = false;
@@ -2585,10 +2590,13 @@
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Seite geladen - starte Hintergrund...');
+
             // Hintergrund starten (Standard: Modus 1)
             const savedBgMode = parseInt(localStorage.getItem('bgMode')) || 1;
             currentBgMode = savedBgMode;
             startBackground(savedBgMode);
+            console.log('Hintergrund gestartet, Modus:', savedBgMode);
 
             // Theme
             const savedTheme = localStorage.getItem('theme');
