@@ -184,7 +184,7 @@
             z-index: 0;
         }
 
-        /* CHAT */
+        /* ===== CHAT & PIXEL ===== */
         .chat-container {
             max-width: 1200px;
             width: 100%;
@@ -347,7 +347,7 @@
             font-style: italic;
         }
 
-        /* CHAT ZEICHNEN */
+        /* ===== CHAT ZEICHNEN ===== */
         .chat-draw-area {
             margin-top: 10px;
             background: rgba(0, 0, 0, 0.2);
@@ -530,7 +530,7 @@
             }
         }
 
-        /* PIXEL CANVAS */
+        /* ===== PIXEL CANVAS ===== */
         .canvas-wrapper {
             width: 100%;
             aspect-ratio: 1/1;
@@ -657,7 +657,7 @@
             display: block;
         }
 
-        /* ADMIN */
+        /* ===== ADMIN ===== */
         .admin-bar {
             display: flex;
             gap: 8px;
@@ -769,7 +769,7 @@
             align-items: center;
         }
 
-        /* MODAL */
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -801,7 +801,7 @@
             font-size: 13px;
         }
 
-        /* BANANA EASTER EGG */
+        /* ===== BANANA EASTER EGG ===== */
         .banana-overlay {
             position: fixed;
             top: 0;
@@ -899,7 +899,7 @@
             justify-content: center;
         }
 
-        /* MOBILE */
+        /* ===== MOBILE ===== */
         @media (max-width: 640px) {
             .card {
                 padding: 14px 12px !important;
@@ -1524,7 +1524,7 @@
         const database = firebase.database();
 
         // ============================================================
-        // HINTERGRUND - KOMPLETT ÜBERARBEITET & FUNKTIONIERT
+        // HINTERGRUND - REPARIERT
         // ============================================================
         let bgAnimationId = null;
         const bgCanvas = document.getElementById('bgCanvas');
@@ -1536,7 +1536,6 @@
             bgMousePresent = false;
         let currentBgMode = 1;
 
-        // Flagge für Hintergrund 2
         const bgFlagImage = new Image();
         bgFlagImage.src = "https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg";
 
@@ -1594,14 +1593,10 @@
         }
 
         function drawBgParticles() {
-            if (!bgCtx) {
-                console.warn('Kein Canvas-Kontext!');
-                return;
-            }
+            if (!bgCtx) return;
             const isLight = document.body.classList.contains('light');
             bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
-            // Hintergrund
             const grad = bgCtx.createLinearGradient(0, 0, bgWidth, bgHeight);
             if (isLight) {
                 grad.addColorStop(0, '#e0e5f0');
@@ -1613,7 +1608,6 @@
             bgCtx.fillStyle = grad;
             bgCtx.fillRect(0, 0, bgWidth, bgHeight);
 
-            // Verbindungen
             for (let i = 0; i < bgParticles.length; i++) {
                 for (let j = i + 1; j < bgParticles.length; j++) {
                     const dx = bgParticles[i].x - bgParticles[j].x,
@@ -1631,7 +1625,6 @@
                 }
             }
 
-            // Partikel
             for (let p of bgParticles) {
                 bgCtx.beginPath();
                 bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -1642,7 +1635,6 @@
             }
             bgCtx.shadowBlur = 0;
 
-            // Maus-Glow
             if (bgMousePresent) {
                 const glow = bgCtx.createRadialGradient(bgMouseX, bgMouseY, 5, bgMouseX, bgMouseY, 100);
                 glow.addColorStop(0, 'rgba(255,217,102,0.15)');
@@ -1651,23 +1643,14 @@
                 bgCtx.fillRect(bgMouseX - 100, bgMouseY - 100, 200, 200);
             }
 
-            // *** WICHTIG: Partikel aktualisieren und neu zeichnen ***
-            updateBgParticles();
-            
-            // Animation fortsetzen
             bgAnimationId = requestAnimationFrame(drawBgParticles);
         }
 
-        // Hintergrund 2: Verschwommene Flagge
         function drawBgFlag() {
-            if (!bgCtx) {
-                console.warn('Kein Canvas-Kontext!');
-                return;
-            }
+            if (!bgCtx) return;
             const isLight = document.body.classList.contains('light');
             bgCtx.clearRect(0, 0, bgWidth, bgHeight);
 
-            // Hintergrund
             const grad = bgCtx.createLinearGradient(0, 0, bgWidth, bgHeight);
             if (isLight) {
                 grad.addColorStop(0, '#e0e5f0');
@@ -1679,7 +1662,6 @@
             bgCtx.fillStyle = grad;
             bgCtx.fillRect(0, 0, bgWidth, bgHeight);
 
-            // Flagge als Hintergrund (verschwommen)
             if (bgFlagImage.complete && bgFlagImage.naturalWidth > 0) {
                 bgCtx.filter = 'blur(15px)';
                 bgCtx.globalAlpha = 0.3;
@@ -1688,7 +1670,6 @@
                 bgCtx.globalAlpha = 1.0;
             }
 
-            // Maus-Glow
             if (bgMousePresent) {
                 const glow = bgCtx.createRadialGradient(bgMouseX, bgMouseY, 5, bgMouseX, bgMouseY, 150);
                 glow.addColorStop(0, 'rgba(255,217,102,0.1)');
@@ -1697,19 +1678,15 @@
                 bgCtx.fillRect(bgMouseX - 150, bgMouseY - 150, 300, 300);
             }
 
-            // Animation fortsetzen (für Maus-Glow)
             bgAnimationId = requestAnimationFrame(drawBgFlag);
         }
 
         function startBackground(mode) {
-            // Alte Animation stoppen
             if (bgAnimationId) {
                 cancelAnimationFrame(bgAnimationId);
                 bgAnimationId = null;
             }
-
             resizeBgCanvas();
-
             if (mode === 1) {
                 initBgParticles();
                 drawBgParticles();
@@ -1736,7 +1713,6 @@
             const isLight = document.body.classList.contains("light");
             document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
             localStorage.setItem("theme", isLight ? "light" : "dark");
-            // Hintergrund neu starten für Farbwechsel
             startBackground(currentBgMode);
         }
 
@@ -1760,898 +1736,655 @@
         }
 
         // ============================================================
-        // SPRACHEN
+        // SPRACHEN – KORREKTE ÜBERSETZUNGEN
+        // ============================================================
+        const data = {
+            de: {
+                homeTitle: "Willkommen in Mundangaria",
+                homeText: "Die Republik Mundangaria ist eine Mikronation, die am 10. September 2025 gegründet wurde und sich in Stuttgart, Baden-Württemberg, Deutschland, befindet. Sie besteht aus einer kleinen Gemeinschaft von einem Einwohner und vier Mitgliedern und wird von den 'Plor Ochtir in Mundangaria' regiert – den drei Vätern von Mundangaria.",
+                symbolsTitle: "Symbole von Mundangaria",
+                flagText: "Nationalflagge",
+                warFlagText: "Kriegsflagge",
+                coatText: "Wappen",
+                flagDesc: "Die mundangarische Flagge hat drei Farben, die jeweils eine tiefe Bedeutung tragen: Blau symbolisiert die Freiheit, so weit wie der Himmel. Rot steht für den Mut der Mundangarier. Grün repräsentiert den Islam, da Mundangaria eine muslimische Mikronation ist. Die drei zentralen Symbole – zwei Mondsicheln und ein Stern – repräsentieren den Islam in Kombination mit der grünen Farbe und ehren gleichzeitig die drei Gründer von Mundangaria (die 'Plor Ochtir in Mundangaria').",
+                warFlagDesc: "Die mundangarische Kriegsflagge wird ausschließlich in Zeiten von Konflikten zwischen Mikronationen oder souveränen Staaten gehisst. Schwarz verkörpert unsere Furchtlosigkeit – wir werden unsere Mikronation unter allen Umständen verteidigen. Rot repräsentiert den Mut, den wir besitzen, wenn wir für Mundangaria kämpfen.",
+                coatDesc: "Das Wappen von Mundangaria zeigt einen Orang-Utan, der auch das Nationaltier ist. Es symbolisiert die Ruhe, Intelligenz und Stärke unserer Nation.",
+                newsTitle: "Offizielle Neuigkeiten",
+                news1: "Neuer Chatroom & Zeichenfunktion",
+                news1Text: "Wir freuen uns, die Einführung unseres neuen Community-Chatrooms bekannt zu geben! Jetzt kannst du in Echtzeit mit anderen Besuchern chatten, Zeichnungen teilen und Teil unserer wachsenden Gemeinschaft werden. Besuche den Community-Bereich, um loszulegen!",
+                news2: "Digitale Präsenz",
+                news2Text: "Unsere offizielle Website ist jetzt online und wird kontinuierlich in Echtzeit aktualisiert!",
+                settings: "Einstellungen",
+                lang: "Sprache",
+                navHome: "Start",
+                navAbout: "Über uns",
+                navNews: "Neuigkeiten",
+                navLang: "Sprache",
+                navSettings: "Einstellungen",
+                navCommunity: "Community",
+                viewTitle: "Anzeigemodus",
+                modeAuto: "Automatisch (Responsive)",
+                modeDesktop: "Desktop-Modus",
+                modeMobile: "Mobile-Modus",
+                bgSelectTitle: "Hintergrundstil",
+                bgMode1: "Hintergrund 1 (Physik-Partikel)",
+                bgMode2: "Hintergrund 2 (Verschwommene Flagge)",
+                warTitle: "Der wahre Grund unserer Gründung",
+                warHeader: "GEHEIME AKTE · DIPLOMATISCHES MEMO",
+                warExtra: "Der wahre Grund, warum wir Mundangaria gegründet haben, ist zweigeteilt: Erstens begann es als Projekt, und zweitens dient es den Sicherheitszwecken der mundangarischen Bürger.",
+                warExtra2: "Sollte Deutschland den Krieg erklären oder andere Arten von Konflikten ausbrechen und Territorium in der Nähe unserer ethnischen Nation besetzt werden, wird Mundangaria seine Unabhängigkeit von den derzeitigen deutschen Provinzen erklären. Wir würden weiterhin neutral bleiben, wobei wir uns auf die Seite der deutschen Ideologien neigen.",
+                warExtra3: "Auch wenn solche Szenarien äußerst unwahrscheinlich sind, sollte man stets vorbereitet sein!",
+                back: "Zurück zur Startseite",
+                aboutTitle: "Über die Republik Mundangaria",
+                aboutText1: "Die Republik Mundangaria ist eine Mikronation, die am 10. September 2025 in Stuttgart, Baden-Württemberg, Deutschland, gegründet wurde. Sie ist mehr als ein symbolisches Projekt – sie ist der Ausdruck einer eigenen, unverwechselbaren Identität und Gemeinschaft.",
+                aboutText2: "Der Name Mundangaria leitet sich aus der Landessprache, dem Mundangarischen, ab und setzt sich aus zwei Teilen zusammen: 'Mundang' bezieht sich auf das Volk und die Kultur, während die Endung '-aria' für 'Land von' oder 'Ort des' steht. So bedeutet der Name 'Das Land der Mundangarischen'. Gleichzeitig ehrt er die drei Gründerväter, die im Mundangarischen als 'Plor Ochtir in Mundangaria' bezeichnet werden – die 'Drei Väter von Mundangaria'.",
+                aboutText3: "Unsere Mikronation wird von diesen drei Personen geführt. Sie regieren im Konsens und stellen das Wohl der Gemeinschaft über alles. Wir sind eine friedliche, weltoffene Gemeinschaft, die Freiheit, Kreativität und gegenseitigen Respekt großschreibt. Als muslimisch geprägte Mikronation spielen die Werte des Islam – wie Gemeinschaftssinn und Gastfreundschaft – eine zentrale Rolle in unserem Alltag und unserer Kultur.",
+                aboutText4: "Mundangaria bekennt sich klar zur Unabhängigkeit, zum Frieden und zur Selbstbestimmung. Wir stehen für Toleranz, Dialog und eine humanistische Grundhaltung. Faschismus, Kommunismus und jede Form von Extremismus lehnen wir entschieden ab. Unser Weg ist der des friedlichen Miteinanders und der kulturellen Eigenständigkeit.",
+                aboutText5: "In Mundangaria werden zwei Sprachen gesprochen: Deutsch für den alltäglichen Austausch und Mundangarisch als unsere kulturelle Herzenssprache. Mundangarisch ist die Sprache unserer Zeremonien, Lieder und Traditionen – sie ist das Herzstück unserer nationalen Identität.",
+                aboutText6: "Die offizielle Währung ist der Euro (€). Alle Handels- und Finanzgeschäfte innerhalb der Mikronation werden in Euro getätigt. Dies erleichtert die wirtschaftliche Einbindung in unser direktes Umfeld.",
+                aboutText7: "Unsere Gemeinschaft ist zwar überschaubar, aber voller Tatendrang: Sie besteht aus 1 ständigen Bewohner und 4 weiteren Mitgliedern. Gemeinsam gestalten wir das Leben in Mundangaria, pflegen unsere Bräuche und blicken voller Optimismus in die Zukunft.",
+                aboutText8: "Mundangaria versteht sich als ein Ort der Begegnung und des kulturellen Austauschs. Wir pflegen freundschaftliche Beziehungen zu anderen Mikronationen weltweit und sind stolz auf unsere Unabhängigkeit, unsere Werte und unsere einzigartige Identität. Wir laden alle Interessierten ein, mehr über unseren Weg zu erfahren.",
+                communityTitle: "Community",
+                chatPanelTitle: "Chat",
+                pixelPanelTitle: "PixelPlace",
+                colorLabel: "Farbe",
+                clearBtn: "Leeren",
+                pixelStatus: "Zeichne und teile",
+                namePlaceholder: "Name",
+                msgPlaceholder: "Nachricht...",
+                sendBtn: "Senden",
+                nameStatus: "Wähle einen Namen",
+                adminBtn: "Admin",
+                adminInactive: "inaktiv",
+                adminActive: "aktiv",
+                adminPanel: "Admin-Bereich",
+                adminPassword: "Passwort",
+                adminLogin: "Login",
+                bannedUsers: "Gebannte Nutzer",
+                banPlaceholder: "Name bannen",
+                banBtn: "Bannen",
+                banInfo: "Gebannte Nutzer können weder chatten noch malen.",
+                connecting: "Verbinde...",
+                connected: "Verbunden",
+                offline: "Offline",
+                live: "live verbunden",
+                wait: "warte auf Verbindung...",
+                error: "Verbindung fehlgeschlagen. Bitte Seite neu laden.",
+                chatDrawColorLabel: "Farbe",
+                chatDrawSizeLabel: "Größe",
+                chatDrawSendBtn: "Zeichnen",
+                chatDrawClearBtn: "Löschen",
+                adminPanelTitle: "Admin-Bereich",
+                bannedUsersTitle: "Gebannte Nutzer",
+                newsSunlandTitle: "Mundangaria annektiert Sunland",
+                sunlandFlagDesc: "Flagge der Republic of Sunland",
+                vertragDesc: "Vertrag über die vorübergehende Annexion von Sunland",
+                newsSunlandText: "Am 10. Juli 2026 unterzeichnete die Republik Mundangaria einen historischen Vertrag mit der Republik Sunland. Dieser Vertrag sieht die vorübergehende Annexion Sunlands für einen Zeitraum von drei Tagen vor. Dies markiert die erste territoriale Expansion in der Geschichte Mundangarias.",
+                newsSunlandFooter: "Dieser diplomatische Erfolg zeigt die wachsende Präsenz Mundangarias in der Mikronationsgemeinschaft und seine Fähigkeit, formelle internationale Abkommen zu schließen.",
+                bananaMessage1: "BANANEN-ZEIT!",
+                bananaMessage2: "BANANEN-REGEN!",
+                bananaMessage3: "HÖR AUF, MICH ZU DRÜCKEN!",
+                bananaProgress: function(count) {
+                    return count + " mal... noch " + (50 - count) + " bis zum Sound!";
+                }
+            },
+            en: {
+                homeTitle: "Welcome to Mundangaria",
+                homeText: "The Republic of Mundangaria is a micronation founded on 10 September 2025, located in Stuttgart, Baden-Württemberg, Germany. It consists of a small community of one inhabitant and four members, and is governed by the 'Plor Ochtir in Mundangaria' – the three fathers of Mundangaria.",
+                symbolsTitle: "Symbols of Mundangaria",
+                flagText: "National Flag",
+                warFlagText: "War Flag",
+                coatText: "Coat of Arms",
+                flagDesc: "The Mundangarian flag features three colors, each with a profound meaning: Blue symbolizes freedom, as vast as the sky. Red represents the courage of the Mundangarian people. Green reflects Islam, as Mundangaria is a Muslim micronation. The three central symbols – two crescents and a star – represent Islam in combination with the green color, while also honoring the three founders of Mundangaria (the 'Plor Ochtir in Mundangaria').",
+                warFlagDesc: "The Mundangarian war flag is raised exclusively in times of conflict between micronations or sovereign states. Black embodies our fearlessness – we will defend our micronation under any circumstances. Red represents the courage we possess when fighting for Mundangaria.",
+                coatDesc: "The coat of arms of Mundangaria features an orangutan, which is also the national animal. It symbolizes the calmness, intelligence, and strength of our nation.",
+                newsTitle: "Official News",
+                news1: "New Chatroom & Drawing Feature",
+                news1Text: "We are excited to announce the launch of our new Community Chatroom! Now you can chat with other visitors in real time, share drawings and be part of our growing community. Visit the Community section to get started!",
+                news2: "Digital Presence",
+                news2Text: "Our official website is now online and will be continuously updated in real time!",
+                settings: "Settings",
+                lang: "Language",
+                navHome: "Home",
+                navAbout: "About",
+                navNews: "News",
+                navLang: "Language",
+                navSettings: "Settings",
+                navCommunity: "Community",
+                viewTitle: "Display Mode",
+                modeAuto: "Auto (Responsive)",
+                modeDesktop: "Desktop Layout",
+                modeMobile: "Mobile Layout",
+                bgSelectTitle: "Background Style",
+                bgMode1: "Background 1 (Physics Particles)",
+                bgMode2: "Background 2 (Blurred Flag)",
+                warTitle: "The True Reason for Our Founding",
+                warHeader: "CLASSIFIED DOCUMENT · DIPLOMATIC MEMO",
+                warExtra: "The true reason we founded Mundangaria is twofold: firstly, it began as a project, and secondly, it serves security purposes of the Mundangarian citizens.",
+                warExtra2: "Should Germany declare war or any other sorts of conflict and territory near our ethnic nation be occupied, Mundangaria will declare independence from the current German provinces. We would still remain neutral, whilst leaning on the German side of ideologies.",
+                warExtra3: "Even though such scenarios are highly unlikely, one should always be prepared!",
+                back: "Return to Home",
+                aboutTitle: "About the Republic of Mundangaria",
+                aboutText1: "The Republic of Mundangaria is a micronation founded on 10 September 2025 in Stuttgart, Baden-Württemberg, Germany. It is more than a symbolic project – it is the expression of a unique identity and community.",
+                aboutText2: "The name Mundangaria is derived from the native Mundangarish language, combining 'Mundang' (the people and culture) with '-aria' (land of). It translates to 'The Land of the Mundangarish' and honors the three founding fathers, known as the 'Plor Ochtir in Mundangaria' – the 'Three Fathers of Mundangaria'.",
+                aboutText3: "Our micronation is led by these three individuals, who govern by consensus and prioritize the community's well-being. We are a peaceful, open-minded community that values freedom, creativity, and mutual respect. As a Muslim-influenced micronation, Islamic values – such as community spirit and hospitality – play a central role in our daily life and culture.",
+                aboutText4: "Mundangaria is firmly committed to independence, peace, and self-determination. We stand for tolerance, dialogue, and a humanitarian foundation. We reject fascism, communism, and all forms of extremism. Our path is one of peaceful coexistence and cultural autonomy.",
+                aboutText5: "Two languages are spoken in Mundangaria: German for everyday communication and Mundangarish as our cultural heart language. Mundangarish is the language of our ceremonies, songs, and traditions – it is the core of our national identity.",
+                aboutText6: "The official currency is the Euro (€). All trade and financial transactions within the micronation are conducted in Euros, facilitating economic integration with our immediate environment.",
+                aboutText7: "Our community is small but full of energy: it consists of 1 permanent resident and 4 additional members. Together, we shape life in Mundangaria, maintain our customs, and look optimistically toward the future.",
+                aboutText8: "Mundangaria sees itself as a place of encounter and cultural exchange. We maintain friendly relations with other micronations worldwide and are proud of our independence, our values, and our unique identity. We invite all interested parties to learn more about our journey.",
+                communityTitle: "Community",
+                chatPanelTitle: "Chat",
+                pixelPanelTitle: "PixelPlace",
+                colorLabel: "Color",
+                clearBtn: "Clear",
+                pixelStatus: "Draw and share",
+                namePlaceholder: "Name",
+                msgPlaceholder: "Message...",
+                sendBtn: "Send",
+                nameStatus: "Choose a name",
+                adminBtn: "Admin",
+                adminInactive: "inactive",
+                adminActive: "active",
+                adminPanel: "Admin Area",
+                adminPassword: "Password",
+                adminLogin: "Login",
+                bannedUsers: "Banned Users",
+                banPlaceholder: "Ban name",
+                banBtn: "Ban",
+                banInfo: "Banned users cannot chat or draw.",
+                connecting: "Connecting...",
+                connected: "Connected",
+                offline: "Offline",
+                live: "live connected",
+                wait: "waiting for connection...",
+                error: "Connection failed. Please reload the page.",
+                chatDrawColorLabel: "Color",
+                chatDrawSizeLabel: "Size",
+                chatDrawSendBtn: "Draw",
+                chatDrawClearBtn: "Clear",
+                adminPanelTitle: "Admin Area",
+                bannedUsersTitle: "Banned Users",
+                newsSunlandTitle: "Mundangaria annexes Sunland",
+                sunlandFlagDesc: "Flag of the Republic of Sunland",
+                vertragDesc: "Treaty on the temporary annexation of Sunland",
+                newsSunlandText: "On 10 July 2026, the Republic of Mundangaria signed a historic treaty with the Republic of Sunland. This treaty provides for the temporary annexation of Sunland for a period of three days. This marks the first territorial expansion in the history of Mundangaria.",
+                newsSunlandFooter: "This diplomatic success demonstrates Mundangaria's growing presence in the micronational community and its ability to conclude formal international agreements.",
+                bananaMessage1: "BANANA TIME!",
+                bananaMessage2: "BANANA RAIN!",
+                bananaMessage3: "STOP PRESSING ME!",
+                bananaProgress: function(count) {
+                    return count + " times... " + (50 - count) + " more until the sound!";
+                }
+            },
+            tr: {
+                homeTitle: "Mundangaria'ya Hoş Geldiniz",
+                homeText: "Mundangaria Cumhuriyeti, 10 Eylül 2025'te Almanya'nın Stuttgart kentinde kurulmuş bir mikronasyondur. Bir sakini ve dört üyesi olan küçük bir topluluktan oluşur ve 'Plor Ochtir in Mundangaria' – Mundangaria'nın üç babası tarafından yönetilmektedir.",
+                symbolsTitle: "Mundangaria'nın Sembolleri",
+                flagText: "Ulusal Bayrak",
+                warFlagText: "Savaş Sancağı",
+                coatText: "Arma",
+                flagDesc: "Mundangaria bayrağında her biri derin anlam taşıyan üç renk bulunur: Mavi, gökyüzü kadar geniş özgürlüğü simgeler. Kırmızı, Mundangaria halkının cesaretini temsil eder. Yeşil, Mundangaria'nın Müslüman bir mikronasyon olması nedeniyle İslam'ı yansıtır. Ortadaki üç sembol – iki hilal ve bir yıldız – yeşil renkle birlikte İslam'ı temsil eder ve aynı zamanda Mundangaria'nın üç kurucusunu ('Plor Ochtir in Mundangaria') onurlandırır.",
+                warFlagDesc: "Mundangaria savaş bayrağı, yalnızca mikronasyonlar veya egemen devletler arasındaki çatışma zamanlarında göndere çekilir. Siyah, korkusuzluğumuzu simgeler – mikronasyonumuzu her koşulda savunacağız. Kırmızı, Mundangaria için savaşırken sahip olduğumuz cesareti temsil eder.",
+                coatDesc: "Mundangaria arması, aynı zamanda ulusal hayvan olan orangutanı gösterir. Bu, ulusumuzun sakinliğini, zekâsını ve gücünü simgeler.",
+                newsTitle: "Resmî Haberler",
+                news1: "Yeni Sohbet Odası ve Çizim Özelliği",
+                news1Text: "Yeni Topluluk Sohbet Odamızı duyurmaktan heyecan duyuyoruz! Artık diğer ziyaretçilerle gerçek zamanlı olarak sohbet edebilir, çizimler paylaşabilir ve büyüyen topluluğumuzun bir parçası olabilirsiniz. Başlamak için Topluluk bölümünü ziyaret edin!",
+                news2: "Dijital Varlık",
+                news2Text: "Resmî web sitemiz artık çevrimiçi ve gerçek zamanlı olarak sürekli güncellenecek!",
+                settings: "Ayarlar",
+                lang: "Dil",
+                navHome: "Ana Sayfa",
+                navAbout: "Hakkında",
+                navNews: "Haber",
+                navLang: "Dil",
+                navSettings: "Ayarlar",
+                navCommunity: "Topluluk",
+                viewTitle: "Görünüm Modu",
+                modeAuto: "Otomatik (Duyarlı)",
+                modeDesktop: "Masaüstü Düzeni",
+                modeMobile: "Mobil Düzen",
+                bgSelectTitle: "Arka Plan Stili",
+                bgMode1: "Arka Plan 1 (Fizik Parçacıkları)",
+                bgMode2: "Arka Plan 2 (Bulanık Bayrak)",
+                warTitle: "Kuruluşumuzun Gerçek Nedeni",
+                warHeader: "GİZLİ DOSYA · DİPLOMATİK MEMO",
+                warExtra: "Mundangaria'yı kurmamızın gerçek nedeni iki yönlüdür: Birincisi, bir proje olarak başladı; ikincisi, Mundangarian vatandaşlarının güvenlik amaçlarına hizmet eder.",
+                warExtra2: "Almanya savaş ilan ederse veya başka tür çatışmalar çıkarsa ve etnik ulusumuzun yakınındaki topraklar işgal edilirse, Mundangaria mevcut Alman eyaletlerinden bağımsızlığını ilan edecektir. Yine de tarafsız kalacağız, ancak Alman ideolojilerine yakın duracağız.",
+                warExtra3: "Bu tür senaryolar çok düşük ihtimal olsa bile, her zaman hazırlıklı olunmalıdır!",
+                back: "Ana Sayfaya Dön",
+                aboutTitle: "Mundangaria Hakkında",
+                aboutText1: "Mundangaria Cumhuriyeti, 10 Eylül 2025'te Almanya'nın Stuttgart kentinde kuruldu. Bu, sembolik bir projeden çok daha fazlasıdır – eşsiz bir kimliğin ve topluluğun ifadesidir.",
+                aboutText2: "Mundangaria ismi yerel Mundangarice dilinden türetilmiştir: 'Mundang' (halk ve kültür) ve '-aria' (ülke) kelimelerinin birleşimidir. Anlamı 'Mundangarların Ülkesi'dir ve aynı zamanda 'Plor Ochtir in Mundangaria' – 'Mundangaria'nın Üç Babası' olarak bilinen üç kurucu babayı onurlandırır.",
+                aboutText3: "Mikronasyonumuz, bu üç kişi tarafından oybirliğiyle yönetilir. Biz; özgürlüğe, yaratıcılığa ve karşılıklı saygıya değer veren, barışçıl ve açık fikirli bir topluluğuz. Müslüman etkisindeki bir mikronasyon olarak İslami değerler (topluluk ruhu ve misafirperverlik gibi) günlük hayatımızda ve kültürümüzde merkezi bir rol oynar.",
+                aboutText4: "Mundangaria bağımsızlığa, barışa ve kendi kaderini tayin hakkına sıkı sıkıya bağlıdır. Tolerans, diyalog ve insancıl bir temel için duruyoruz. Faşizmi, komünizmi ve her türlü aşırıcılığı reddediyoruz. Yolumuz barış içinde bir arada yaşama ve kültürel özerkliktir.",
+                aboutText5: "Mundangaria'da iki dil konuşulmaktadır: Günlük iletişim için Almanca ve kültürel kalbimiz olan Mundangarice. Mundangarice, törenlerimizin, şarkılarımızın ve geleneklerimizin dilidir – ulusal kimliğimizin özüdür.",
+                aboutText6: "Resmî para birimi Euro'dur (€). Mikronasyon içindeki tüm ticaret ve finansal işlemler Euro üzerinden yürütülür ve bu, yakın çevremize ekonomik entegrasyonu kolaylaştırır.",
+                aboutText7: "Topluluğumuz küçük ama enerjik: 1 daimi sakini ve 4 ek üyesi var. Birlikte Mundangaria'daki hayatı şekillendiriyor, geleneklerimizi yaşatıyor ve geleceğe umutla bakıyoruz.",
+                aboutText8: "Mundangaria kendini bir kültürel karşılaşma ve değişim yeri olarak görür. Dünya çapındaki diğer mikronasyonlarla dostane ilişkiler sürdürüyoruz ve bağımsızlığımız, değerlerimiz ve eşsiz kimliğimizle gurur duyuyoruz. Tüm ilgilileri yolculuğumuz hakkında daha fazla bilgi edinmeye davet ediyoruz.",
+                communityTitle: "Topluluk",
+                chatPanelTitle: "Sohbet",
+                pixelPanelTitle: "PixelPlace",
+                colorLabel: "Renk",
+                clearBtn: "Temizle",
+                pixelStatus: "Çiz ve paylaş",
+                namePlaceholder: "İsim",
+                msgPlaceholder: "Mesaj...",
+                sendBtn: "Gönder",
+                nameStatus: "Bir isim seç",
+                adminBtn: "Admin",
+                adminInactive: "etkin değil",
+                adminActive: "etkin",
+                adminPanel: "Admin Alanı",
+                adminPassword: "Şifre",
+                adminLogin: "Giriş",
+                bannedUsers: "Yasaklanan Kullanıcılar",
+                banPlaceholder: "İsim yasakla",
+                banBtn: "Yasakla",
+                banInfo: "Yasaklanan kullanıcılar ne sohbet edebilir ne de çizim yapabilir.",
+                connecting: "Bağlanıyor...",
+                connected: "Bağlandı",
+                offline: "Çevrimdışı",
+                live: "canlı bağlı",
+                wait: "bağlantı bekleniyor...",
+                error: "Bağlantı başarısız. Lütfen sayfayı yeniden yükleyin.",
+                chatDrawColorLabel: "Renk",
+                chatDrawSizeLabel: "Boyut",
+                chatDrawSendBtn: "Çiz",
+                chatDrawClearBtn: "Temizle",
+                adminPanelTitle: "Admin Alanı",
+                bannedUsersTitle: "Yasaklanan Kullanıcılar",
+                newsSunlandTitle: "Mundangaria, Sunland'ı ilhak etti",
+                sunlandFlagDesc: "Sunland Cumhuriyeti Bayrağı",
+                vertragDesc: "Sunland'ın geçici ilhakına ilişkin anlaşma",
+                newsSunlandText: "10 Temmuz 2026'da Mundangaria Cumhuriyeti, Sunland Cumhuriyeti ile tarihi bir anlaşma imzaladı. Bu anlaşma, Sunland'ın üç günlük bir süre için geçici olarak ilhak edilmesini öngörüyor. Bu, Mundangaria tarihindeki ilk toprak genişlemesidir.",
+                newsSunlandFooter: "Bu diplomatik başarı, Mundangaria'nın mikronasyon topluluğundaki büyüyen varlığını ve resmi uluslararası anlaşmalar yapma yeteneğini göstermektedir.",
+                bananaMessage1: "MUZ ZAMANI!",
+                bananaMessage2: "MUZ YAĞMURU!",
+                bananaMessage3: "BENİ DÜRTTÜRMEYİ KES!",
+                bananaProgress: function(count) {
+                    return count + " kez... sese " + (50 - count) + " kaldı!";
+                }
+            },
+            bs: {
+                homeTitle: "Dobrodošli u Mundangariju",
+                homeText: "Republika Mundangaria je mikronacija osnovana 10. septembra 2025. godine, smještena u Stuttgartu, Baden-Württemberg, Njemačka. Sastoji se od male zajednice od jednog stanovnika i četiri člana, a njome upravljaju 'Plor Ochtir in Mundangaria' – tri oca Mundangarije.",
+                symbolsTitle: "Simboli Mundangarije",
+                flagText: "Nacionalna Zastava",
+                warFlagText: "Ratna Zastava",
+                coatText: "Grb",
+                flagDesc: "Mundangarijska zastava ima tri boje, svaka s dubokim značenjem: Plava simbolizira slobodu, prostranu poput neba. Crvena predstavlja hrabrost mundangarijskog naroda. Zelena odražava islam, jer je Mundangaria muslimanska mikronacija. Tri centralna simbola – dva polumjeseca i zvijezda – predstavljaju islam u kombinaciji sa zelenom bojom, dok istovremeno odaju počast trima osnivačima Mundangarije ('Plor Ochtir in Mundangaria').",
+                warFlagDesc: "Mundangarijska ratna zastava podiže se isključivo u vrijeme sukoba između mikronacija ili suverenih država. Crna utjelovljuje našu neustrašivost – branit ćemo našu mikronaciju pod bilo kojim okolnostima. Crvena predstavlja hrabrost koju posjedujemo kada se borimo za Mundangariju.",
+                coatDesc: "Grb Mundangarije prikazuje orangutana, koji je ujedno i nacionalna životinja. On simbolizira mirnoću, inteligenciju i snagu naše nacije.",
+                newsTitle: "Službene Vijesti",
+                news1: "Novi Chatroom i Funkcija Crtanja",
+                news1Text: "Uzbuđeni smo najaviti pokretanje našeg novog Community Chatroom-a! Sada možete razgovarati u stvarnom vremenu s drugim posjetiteljima, dijeliti crteže i biti dio naše rastuće zajednice. Posjetite Community odjeljak da započnete!",
+                news2: "Digitalna Prisutnost",
+                news2Text: "Naša službena web stranica je sada online i bit će kontinuirano ažurirana u stvarnom vremenu!",
+                settings: "Postavke",
+                lang: "Jezik",
+                navHome: "Početna",
+                navAbout: "O Nama",
+                navNews: "Vijesti",
+                navLang: "Jezik",
+                navSettings: "Postavke",
+                navCommunity: "Zajednica",
+                viewTitle: "Način Prikaza",
+                modeAuto: "Automatski (Prilagodljiv)",
+                modeDesktop: "Desktop Izgled",
+                modeMobile: "Mobilni Izgled",
+                bgSelectTitle: "Stil Pozadine",
+                bgMode1: "Pozadina 1 (Fizičke Čestice)",
+                bgMode2: "Pozadina 2 (Zamagljena Zastava)",
+                warTitle: "Pravi Razlog Našeg Osnivanja",
+                warHeader: "TAJNI DOSJE · DIPLOMATSKI MEMO",
+                warExtra: "Pravi razlog zbog kojeg smo osnovali Mundangariju je dvostruk: prvo, započelo je kao projekt, a drugo, služi sigurnosnim svrhama mundangarijskih građana.",
+                warExtra2: "Ako Njemačka objavi rat ili bilo kakve druge sukobe i teritorija u blizini naše etničke nacije bude okupirana, Mundangaria će proglasiti nezavisnost od trenutnih njemačkih provincija. I dalje bismo ostali neutralni, ali blizu njemačke strane ideologija.",
+                warExtra3: "Iako su takvi scenariji vrlo malo vjerovatni, uvijek treba biti spreman!",
+                back: "Nazad na Početnu",
+                aboutTitle: "O Mundangariji",
+                aboutText1: "Republika Mundangaria osnovana je 10. septembra 2025. u Stuttgartu, Njemačka. To je više od simboličkog projekta – izraz je jedinstvenog identiteta i zajednice.",
+                aboutText2: "Ime Mundangaria potječe iz lokalnog mundangarskog jezika: kombinacija je 'Mundang' (narod i kultura) i '-aria' (zemlja). Prevod je 'Zemlja Mundangara' i odaje počast trojici osnivača, poznatih kao 'Plor Ochtir in Mundangaria' – 'Tri oca Mundangarije'.",
+                aboutText3: "Našom mikronacijom upravljaju ove tri osobe, vladaju konsenzusom i daju prednost dobrobiti zajednice. Mi smo miroljubiva, otvorena zajednica koja cijeni slobodu, kreativnost i međusobno poštovanje. Kao muslimanska mikronacija, islamske vrijednosti – poput duha zajedništva i gostoprimstva – igraju centralnu ulogu u našem svakodnevnom životu i kulturi.",
+                aboutText4: "Mundangaria je čvrsto posvećena nezavisnosti, miru i samoopredjeljenju. Zalažemo se za toleranciju, dijalog i humanitarnu osnovu. Odbijamo fašizam, komunizam i sve oblike ekstremizma. Naš put je miran suživot i kulturna autonomija.",
+                aboutText5: "U Mundangariji se govore dva jezika: njemački za svakodnevnu komunikaciju i mundangarski kao kulturni jezik srca. Mundangarski je jezik naših ceremonija, pjesama i tradicija – jezgro je našeg nacionalnog identiteta.",
+                aboutText6: "Službena valuta je Euro (€). Sva trgovina i finansijske transakcije unutar mikronacije obavljaju se u eurima, što olakšava ekonomsku integraciju s našim neposrednim okruženjem.",
+                aboutText7: "Naša zajednica je mala, ali puna energije: sastoji se od 1 stalnog stanovnika i 4 dodatna člana. Zajedno oblikujemo život u Mundangariji, njegujemo naše običaje i optimistično gledamo u budućnost.",
+                aboutText8: "Mundangaria sebe vidi kao mjesto susreta i kulturne razmjene. Održavamo prijateljske odnose s drugim mikronacijama širom svijeta i ponosni smo na svoju nezavisnost, vrijednosti i jedinstveni identitet. Pozivamo sve zainteresirane da saznaju više o našem putu.",
+                communityTitle: "Zajednica",
+                chatPanelTitle: "Chat",
+                pixelPanelTitle: "PixelPlace",
+                colorLabel: "Boja",
+                clearBtn: "Obriši",
+                pixelStatus: "Crtaj i dijeli",
+                namePlaceholder: "Ime",
+                msgPlaceholder: "Poruka...",
+                sendBtn: "Pošalji",
+                nameStatus: "Odaberi ime",
+                adminBtn: "Admin",
+                adminInactive: "neaktivan",
+                adminActive: "aktivan",
+                adminPanel: "Admin Područje",
+                adminPassword: "Lozinka",
+                adminLogin: "Prijava",
+                bannedUsers: "Zabranjeni Korisnici",
+                banPlaceholder: "Zabrani ime",
+                banBtn: "Zabrani",
+                banInfo: "Zabranjeni korisnici ne mogu ni chatati ni crtati.",
+                connecting: "Povezivanje...",
+                connected: "Povezan",
+                offline: "Offline",
+                live: "live povezan",
+                wait: "čekam vezu...",
+                error: "Veza neuspješna. Molimo osvježite stranicu.",
+                chatDrawColorLabel: "Boja",
+                chatDrawSizeLabel: "Veličina",
+                chatDrawSendBtn: "Crtaj",
+                chatDrawClearBtn: "Obriši",
+                adminPanelTitle: "Admin Područje",
+                bannedUsersTitle: "Zabranjeni Korisnici",
+                newsSunlandTitle: "Mundangaria anektirala Sunland",
+                sunlandFlagDesc: "Zastava Republike Sunland",
+                vertragDesc: "Ugovor o privremenoj aneksiji Sunlanda",
+                newsSunlandText: "10. jula 2026. Republika Mundangaria potpisala je istorijski ugovor s Republikom Sunland. Ovaj ugovor predviđa privremenu aneksiju Sunlanda u trajanju od tri dana. Ovo je prva teritorijalna ekspanzija u istoriji Mundangarije.",
+                newsSunlandFooter: "Ovaj diplomatski uspjeh pokazuje rastuće prisustvo Mundangarije u mikronacionalnoj zajednici i njenu sposobnost da sklapa formalne međunarodne sporazume.",
+                bananaMessage1: "BANANA VRIJEME!",
+                bananaMessage2: "BANANA KIŠA!",
+                bananaMessage3: "PRESTANI ME PRITISKATI!",
+                bananaProgress: function(count) {
+                    return count + " puta... još " + (50 - count) + " do zvuka!";
+                }
+            },
+            ar: {
+                homeTitle: "مرحباً في موندانغاريا",
+                homeText: "جمهورية موندانغاريا هي دولة مجهرية تأسست في 10 سبتمبر 2025، وتقع في شتوتغارت، بادن-فورتمبيرغ، ألمانيا. تتكون من مجتمع صغير يضم ساكناً واحداً وأربعة أعضاء، وتحكمها 'بلور أوختير في موندانغاريا' – آباء موندانغاريا الثلاثة.",
+                symbolsTitle: "رموز موندانغاريا",
+                flagText: "العلم الوطني",
+                warFlagText: "علم الحرب",
+                coatText: "شعار النبالة",
+                flagDesc: "يتألف علم موندانغاريا من ثلاثة ألوان، لكل منها معنى عميق: الأزرق يرمز إلى الحرية الواسعة كالسماء. الأحمر يمثل شجاعة شعب موندانغاريا. الأخضر يعكس الإسلام، لأن موندانغاريا دولة مجهرية مسلمة. الرموز الثلاثة في الوسط – هلالان ونجمة – تمثل الإسلام مع اللون الأخضر، وتكرم في الوقت نفسه المؤسسين الثلاثة لموندانغاريا ('بلور أوختير في موندانغاريا').",
+                warFlagDesc: "يرفع علم الحرب الموندانغاري حصراً في أوقات النزاع بين الدول المجهرية أو الدول ذات السيادة. الأسود يجسد شجاعتنا – سندافع عن دولتنا المجهرية تحت أي ظرف. الأحمر يمثل الشجاعة التي نمتلكها عندما نقاتل من أجل موندانغاريا.",
+                coatDesc: "يظهر شعار النبالة لموندانغاريا إنسان الغاب، وهو أيضاً الحيوان الوطني. يرمز إلى الهدوء والذكاء والقوة التي تتمتع بها أمتنا.",
+                newsTitle: "الأخبار الرسمية",
+                news1: "غرفة دردشة جديدة وميزة الرسم",
+                news1Text: "يسعدنا الإعلان عن إطلاق غرفة الدردشة المجتمعية الجديدة! يمكنك الآن الدردشة في الوقت الفعلي مع زوار آخرين ومشاركة الرسومات وتكون جزءاً من مجتمعنا المتنامي. قم بزيارة قسم المجتمع للبدء!",
+                news2: "الوجود الرقمي",
+                news2Text: "موقعنا الرسمي على الإنترنت الآن وسيتم تحديثه باستمرار في الوقت الفعلي!",
+                settings: "الإعدادات",
+                lang: "اللغة",
+                navHome: "الرئيسية",
+                navAbout: "عن",
+                navNews: "الأخبار",
+                navLang: "اللغة",
+                navSettings: "الإعدادات",
+                navCommunity: "المجتمع",
+                viewTitle: "وضع العرض",
+                modeAuto: "تلقائي (متجاوب)",
+                modeDesktop: "تخطيط سطح المكتب",
+                modeMobile: "تخطيط الهاتف",
+                bgSelectTitle: "نمط الخلفية",
+                bgMode1: "الخلفية 1 (جزيئات فيزيائية)",
+                bgMode2: "الخلفية 2 (علم ضبابي)",
+                warTitle: "السبب الحقيقي لتأسيسنا",
+                warHeader: "وثيقة سرية · مذكرة دبلوماسية",
+                warExtra: "السبب الحقيقي وراء تأسيسنا لموندانغاريا هو سبب مزدوج: أولاً، بدأ كمشروع، وثانياً، يخدم الأغراض الأمنية لمواطني موندانغاريا.",
+                warExtra2: "إذا أعلنت ألمانيا الحرب أو أي نوع آخر من النزاعات واحتلت الأراضي القريبة من أمتنا العرقية، فإن موندانغاريا ستعلن استقلالها عن المقاطعات الألمانية الحالية. سنظل محايدين، مع ميلنا إلى الجانب الألماني من الأيديولوجيات.",
+                warExtra3: "حتى لو كانت هذه السيناريوهات غير محتملة للغاية، يجب أن تكون مستعداً دائماً!",
+                back: "العودة إلى الرئيسية",
+                aboutTitle: "عن موندانغاريا",
+                aboutText1: "تأسست جمهورية موندانغاريا في 10 سبتمبر 2025 في شتوتغارت، ألمانيا. إنها أكثر من مجرد مشروع رمزي – إنها تعبير عن هوية ومجتمع فريد من نوعه.",
+                aboutText2: "اسم موندانغاريا مشتق من اللغة الموندانغارية المحلية: مزيج من 'موندانغ' (الشعب والثقافة) و '-أريا' (أرض). يعني 'أرض الموندانغاريين' ويكرم الآباء المؤسسين الثلاثة، المعروفين باسم 'بلور أوختير في موندانغاريا' – 'آباء موندانغاريا الثلاثة'.",
+                aboutText3: "يقود دولتنا المجهرية هؤلاء الثلاثة، يحكمون بالتوافق ويمنحون الأولوية لرفاهية المجتمع. نحن مجتمع مسالم ومنفتح يقدر الحرية والإبداع والاحترام المتبادل. كدولة مجهرية ذات تأثير إسلامي، تلعب القيم الإسلامية – مثل روح المجتمع والكرم – دوراً مركزياً في حياتنا اليومية وثقافتنا.",
+                aboutText4: "تلتزم موندانغاريا بشدة بالاستقلال والسلام وتقرير المصير. نحن ندعم التسامح والحوار والأسس الإنسانية. نرفض الفاشية والشيوعية وجميع أشكال التطرف. طريقنا هو التعايش السلمي والاستقلال الثقافي.",
+                aboutText5: "يتم التحدث بلغتين في موندانغاريا: الألمانية للتواصل اليومي والموندانغارية كلغة قلبنا الثقافي. الموندانغارية هي لغة احتفالاتنا وأغانينا وتقاليدنا – إنها جوهر هويتنا الوطنية.",
+                aboutText6: "العملة الرسمية هي اليورو (€). تتم جميع التجارة والمعاملات المالية داخل الدولة المجهرية باليورو، مما يسهل التكامل الاقتصادي مع بيئتنا المباشرة.",
+                aboutText7: "مجتمعنا صغير ولكنه مليء بالطاقة: يتكون من ساكن دائم و 4 أعضاء إضافيين. معاً، نشكل الحياة في موندانغاريا، ونحافظ على عاداتنا، وننظر بتفاؤل إلى المستقبل.",
+                aboutText8: "تعتبر موندانغاريا نفسها مكاناً للقاء والتبادل الثقافي. نحن نحافظ على علاقات ودية مع الدول المجهرية الأخرى في جميع أنحاء العالم ونفتخر باستقلالنا وقيمنا وهويتنا الفريدة. ندعو جميع المهتمين لمعرفة المزيد عن رحلتنا.",
+                communityTitle: "المجتمع",
+                chatPanelTitle: "دردشة",
+                pixelPanelTitle: "بكسل بليس",
+                colorLabel: "اللون",
+                clearBtn: "مسح",
+                pixelStatus: "ارسم وشارك",
+                namePlaceholder: "الاسم",
+                msgPlaceholder: "رسالة...",
+                sendBtn: "إرسال",
+                nameStatus: "اختر اسماً",
+                adminBtn: "مدير",
+                adminInactive: "غير نشط",
+                adminActive: "نشط",
+                adminPanel: "منطقة المدير",
+                adminPassword: "كلمة المرور",
+                adminLogin: "تسجيل الدخول",
+                bannedUsers: "المستخدمون المحظورون",
+                banPlaceholder: "حظر اسم",
+                banBtn: "حظر",
+                banInfo: "لا يمكن للمستخدمين المحظورين الدردشة أو الرسم.",
+                connecting: "جارٍ الاتصال...",
+                connected: "متصل",
+                offline: "غير متصل",
+                live: "متصل مباشر",
+                wait: "في انتظار الاتصال...",
+                error: "فشل الاتصال. يرجى إعادة تحميل الصفحة.",
+                chatDrawColorLabel: "اللون",
+                chatDrawSizeLabel: "الحجم",
+                chatDrawSendBtn: "ارسم",
+                chatDrawClearBtn: "مسح",
+                adminPanelTitle: "منطقة المدير",
+                bannedUsersTitle: "المستخدمون المحظورون",
+                newsSunlandTitle: "موندانغاريا تضم صنلاند",
+                sunlandFlagDesc: "علم جمهورية صنلاند",
+                vertragDesc: "معاهدة الضم المؤقت لصنلاند",
+                newsSunlandText: "في 10 يوليو 2026، وقعت جمهورية موندانغاريا معاهدة تاريخية مع جمهورية صنلاند. تنص هذه المعاهدة على الضم المؤقت لصنلاند لمدة ثلاثة أيام. يمثل هذا أول توسع إقليمي في تاريخ موندانغاريا.",
+                newsSunlandFooter: "يظهر هذا النجاح الدبلوماسي الوجود المتزايد لموندانغاريا في مجتمع الدول المجهرية وقدرتها على إبرام اتفاقيات دولية رسمية.",
+                bananaMessage1: "وقت الموز!",
+                bananaMessage2: "مطر الموز!",
+                bananaMessage3: "توقف عن الضغط علي!",
+                bananaProgress: function(count) {
+                    return count + " مرة... " + (50 - count) + " حتى الصوت!";
+                }
+            }
+        };
+
+        const microInfo = {
+            en: {
+                otherTitle: "Other Micronations",
+                name: "Republic of Molossia",
+                text: "Molossia is one of the best-known micronations in the world. It was founded on May 26, 1977 by Kevin Baugh and is located in the US state of Nevada. Although Molossia is not officially recognized by any state, it has its own flag, laws and currency. Today it is considered one of the best-known examples of a modern micronation. Molossia is also a very good friend of the Republic of Mundangaria. The friendly relations between the two nations are based on mutual respect and appreciation within the micronational community.",
+                link: "Visit the Official Molossia Website"
+            },
+            de: {
+                otherTitle: "Andere Mikronationen",
+                name: "Republik Molossia",
+                text: "Molossia ist eine der bekanntesten Mikronationen der Welt. Sie wurde am 26. Mai 1977 von Kevin Baugh gegründet und befindet sich im US-Bundesstaat Nevada. Obwohl Molossia von keinem Staat offiziell anerkannt wird, besitzt sie eine eigene Flagge, Gesetze und eine eigene Währung. Heute gilt sie als eines der bekanntesten Beispiele einer modernen Mikronation. Molossia ist außerdem ein sehr guter Freund der Republik Mundangaria. Die freundschaftlichen Beziehungen zwischen beiden Nationen basieren auf gegenseitigem Respekt und Wertschätzung innerhalb der Mikronationsgemeinschaft.",
+                link: "Besuche die offizielle Molossia-Website"
+            },
+            tr: {
+                otherTitle: "Diğer Mikronasyonlar",
+                name: "Molossia Cumhuriyeti",
+                text: "Molossia, dünyanın en bilinen mikronasyonlarından biridir. 26 Mayıs 1977'de Kevin Baugh tarafından kurulmuş ve ABD'nin Nevada eyaletinde bulunmaktadır. Molossia, hiçbir devlet tarafından resmen tanınmasa da kendi bayrağına, yasalarına ve para birimine sahiptir. Günümüzde modern bir mikronasyonun en bilinen örneklerinden biri olarak kabul edilmektedir. Molossia ayrıca Mundangaria Cumhuriyeti'nin çok iyi bir dostudur. İki ulus arasındaki dostane ilişkiler, mikronasyon topluluğu içinde karşılıklı saygı ve takdire dayanmaktadır.",
+                link: "Resmî Molossia Web Sitesini Ziyaret Et"
+            },
+            bs: {
+                otherTitle: "Druge Mikronacije",
+                name: "Republika Molossia",
+                text: "Molossia je jedna od najpoznatijih mikronacija na svijetu. Osnovana je 26. maja 1977. od strane Kevina Baugha i nalazi se u američkoj saveznoj državi Nevada. Iako Molossia nije službeno priznata od strane bilo koje države, posjeduje vlastitu zastavu, zakone i valutu. Danas se smatra jednim od najpoznatijih primjera moderne mikronacije. Molossia je također vrlo dobar prijatelj Republike Mundangaria. Prijateljski odnosi između dviju nacija temelje se na uzajamnom poštovanju i uvažavanju unutar mikronacijske zajednice.",
+                link: "Posjetite Službenu Web Stranicu Molossia"
+            },
+            ar: {
+                otherTitle: "دول مجهرية أخرى",
+                name: "جمهورية مولوسيا",
+                text: "مولوسيا هي واحدة من أشهر الدول المجهرية في العالم. تأسست في 26 مايو 1977 على يد كيفن بوغ، وتقع في ولاية نيفادا الأمريكية. على الرغم من أن مولوسيا غير معترف بها رسمياً من قبل أي دولة، إلا أنها تمتلك علمها الخاص وقوانينها وعملتها الخاصة. تعتبر اليوم واحدة من أشهر الأمثلة على الدولة المجهرية الحديثة. مولوسيا هي أيضاً صديق جيد جداً لجمهورية موندانغاريا. تقوم العلاقات الودية بين الدولتين على الاحترام المتبادل والتقدير داخل مجتمع الدول المجهرية.",
+                link: "زر الموقع الرسمي لمولوسيا"
+            }
+        };
+
+        // ============================================================
+        // SPRACHE SETZEN
         // ============================================================
         function setLang(lang) {
+            const d = data[lang] || data.de;
+            const m = microInfo[lang] || microInfo.de;
             localStorage.setItem("lang", lang);
             document.documentElement.lang = lang;
             document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-        }
 
-        // ============================================================
-        // ADMIN & BAN SYSTEM
-        // ============================================================
-        const ADMIN_PASSWORD = 'eymen3838';
-        let isAdmin = false;
-        let bannedUsers = [];
-        let currentUser = null;
-        let currentUserRef = null;
+            // Home
+            document.getElementById("homeTitle").innerText = d.homeTitle;
+            document.getElementById("homeText").innerText = d.homeText;
+            document.getElementById("symbolsTitle").innerText = d.symbolsTitle;
+            document.getElementById("flagText").innerHTML = d.flagText;
+            document.getElementById("warFlagText").innerHTML = d.warFlagText;
+            document.getElementById("coatText").innerHTML = d.coatText;
+            document.getElementById("flagDesc").innerHTML = d.flagDesc;
+            document.getElementById("warFlagDesc").innerHTML = d.warFlagDesc;
+            document.getElementById("coatDesc").innerHTML = d.coatDesc;
+            document.getElementById("otherTitle").innerText = m.otherTitle;
+            document.getElementById("molossiaName").innerText = m.name;
+            document.getElementById("molossiaText").innerText = m.text;
+            document.getElementById("molossiaLink").innerText = m.link;
 
-        function loadBans() {
-            database.ref('bans').once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) { bannedUsers = Object.values(data); } else { bannedUsers = []; }
-                updateBanListUI();
-            });
-        }
-        database.ref('bans').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) { bannedUsers = Object.values(data); } else { bannedUsers = []; }
-            updateBanListUI();
-        });
+            // About
+            document.getElementById("aboutTitle").innerText = d.aboutTitle;
+            document.getElementById("aboutText1").innerText = d.aboutText1;
+            document.getElementById("aboutText2").innerText = d.aboutText2;
+            document.getElementById("aboutText3").innerText = d.aboutText3;
+            document.getElementById("aboutText4").innerText = d.aboutText4;
+            document.getElementById("aboutText5").innerText = d.aboutText5;
+            document.getElementById("aboutText6").innerText = d.aboutText6;
+            document.getElementById("aboutText7").innerText = d.aboutText7;
+            document.getElementById("aboutText8").innerText = d.aboutText8;
 
-        function isBanned(name) {
-            if (!name) return false;
-            const trimmedName = name.trim().toLowerCase();
-            return bannedUsers.some(b => b.toLowerCase() === trimmedName);
-        }
+            // News
+            document.getElementById("newsTitle").innerText = d.newsTitle;
+            document.getElementById("news1").innerText = d.news1;
+            document.getElementById("news1Text").innerText = d.news1Text;
+            document.getElementById("news2").innerText = d.news2;
+            document.getElementById("news2Text").innerText = d.news2Text;
+            document.getElementById("newsSunlandTitle").innerHTML = d.newsSunlandTitle;
+            document.getElementById("sunlandFlagDesc").innerHTML = d.sunlandFlagDesc;
+            document.getElementById("vertragDesc").innerHTML = d.vertragDesc;
+            document.getElementById("newsSunlandText").innerHTML = d.newsSunlandText;
+            document.getElementById("newsSunlandFooter").innerHTML = d.newsSunlandFooter;
 
-        function banUser(name) {
-            if (!name || name.trim() === '') return;
-            const trimmedName = name.trim();
-            if (isBanned(trimmedName)) {
-                alert(`"${trimmedName}" ist bereits gebannt.`);
-                return;
-            }
-            database.ref('bans').push(trimmedName);
-            addSystemMessage(`"${trimmedName}" wurde gebannt.`);
+            // Settings
+            document.getElementById("settingsTitle").innerText = d.settings;
+            document.getElementById("langTitle").innerText = d.lang;
+            document.getElementById("viewTitle").innerText = d.viewTitle;
+            document.getElementById("bgSelectTitle").innerText = d.bgSelectTitle;
+            document.getElementById("bgMode1Btn").innerText = d.bgMode1;
+            document.getElementById("bgMode2Btn").innerText = d.bgMode2;
+            document.getElementById("modeAutoBtn").innerText = d.modeAuto;
+            document.getElementById("modeDesktopBtn").innerText = d.modeDesktop;
+            document.getElementById("modeMobileBtn").innerText = d.modeMobile;
 
-            document.querySelectorAll('.msg').forEach(msg => {
-                const userSpan = msg.querySelector('.user');
-                if (userSpan && userSpan.textContent === trimmedName) {
-                    msg.style.opacity = '0.2';
-                    msg.style.textDecoration = 'line-through';
-                    msg.classList.add('banned-msg');
-                }
-            });
+            // War
+            document.getElementById("warTitle").innerText = d.warTitle;
+            document.getElementById("warHeader").innerHTML = d.warHeader;
+            document.getElementById("warExtra").innerHTML = d.warExtra;
+            document.getElementById("warExtra2").innerHTML = d.warExtra2;
+            document.getElementById("warExtra3").innerHTML = d.warExtra3;
+            document.getElementById("backBtn").innerText = d.back;
 
-            const currentName = chatUsernameInput.value.trim();
-            if (currentName.toLowerCase() === trimmedName.toLowerCase()) {
-                chatUsernameInput.value = '';
-                chatUsernameInput.placeholder = 'Dieser Name ist gebannt!';
-                chatInput.disabled = true;
-                chatSendBtn.disabled = true;
-                chatNameStatus.textContent = `"${trimmedName}" ist gebannt!`;
-                chatNameStatus.className = 'name-status taken';
-                localStorage.removeItem('mundangariaChatUser');
+            // Community
+            document.getElementById("communityTitle").innerText = d.communityTitle;
+            document.getElementById("chatPanelTitle").innerHTML = d.chatPanelTitle;
+            document.getElementById("pixelPanelTitle").innerHTML = d.pixelPanelTitle;
+            document.getElementById("colorLabel").innerText = d.colorLabel;
+            document.getElementById("clearBtnText").innerText = d.clearBtn;
+            document.getElementById("pixelStatus").innerText = d.pixelStatus;
+            document.getElementById("chatUsernameInput").placeholder = d.namePlaceholder;
+            document.getElementById("chatInput").placeholder = d.msgPlaceholder;
+            document.getElementById("chatSendBtn").innerText = d.sendBtn;
+            document.getElementById("chatNameStatus").textContent = d.nameStatus;
+            document.getElementById("adminToggleBtn").innerHTML = d.adminBtn;
+            document.getElementById("adminStatus").textContent = d.adminInactive;
+            document.querySelector("#adminPanel h4").innerHTML = d.adminPanelTitle || d.adminPanel;
+            document.getElementById("adminPassword").placeholder = d.adminPassword;
+            document.getElementById("adminLoginBtn").innerText = d.adminLogin;
+            document.getElementById("bannedUsersTitle").innerHTML = d.bannedUsersTitle || d.bannedUsers;
+            document.getElementById("banInput").placeholder = d.banPlaceholder;
+            document.getElementById("banBtn").innerText = d.banBtn;
+            document.getElementById("banInfoText").innerHTML = d.banInfo;
+            document.getElementById("chatConnectionStatus").textContent = d.connecting;
+            document.getElementById("chatStatusText").textContent = d.wait;
 
-                if (currentUserRef) {
-                    currentUserRef.remove();
-                    currentUserRef = null;
-                }
+            // Chat Draw
+            document.getElementById("chatDrawColorLabel").innerText = d.chatDrawColorLabel;
+            document.getElementById("chatDrawSizeLabel").innerText = d.chatDrawSizeLabel;
+            document.getElementById("sendChatDrawBtn").innerHTML = "📤 " + d.chatDrawSendBtn;
 
-                chatInput.placeholder = 'Du wurdest gebannt!';
-                chatInput.value = '';
-                addSystemMessage(`Du wurdest gebannt und kannst nicht mehr chatten!`);
-            }
-        }
-
-        function unbanUser(name) {
-            if (!name || name.trim() === '') return;
-            const trimmedName = name.trim();
-            database.ref('bans').once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    for (let key in data) {
-                        if (data[key].toLowerCase() === trimmedName.toLowerCase()) {
-                            database.ref('bans/' + key).remove();
-                            addSystemMessage(`"${trimmedName}" wurde entbannt.`);
-                            break;
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateBanListUI() {
-            const list = document.getElementById('banList');
-            if (!list) return;
-            list.innerHTML = '';
-            if (bannedUsers.length === 0) {
-                list.innerHTML = '<li style="opacity:0.3;font-style:italic;">Keine gebannten Nutzer</li>';
-                return;
-            }
-            bannedUsers.forEach(name => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-              <span>${name}</span>
-              <button class="unban-btn" onclick="unbanUser('${name}')">Entbannen</button>
-            `;
-                list.appendChild(li);
-            });
-        }
-
-        function deleteMessage(msgId) {
-            if (!isAdmin) { addSystemMessage('Nur Admins können Nachrichten löschen.'); return; }
-            if (confirm('Diese Nachricht wirklich löschen?')) {
-                database.ref('chat/' + msgId).remove();
-                addSystemMessage('Nachricht wurde gelöscht.');
-            }
-        }
-
-        document.getElementById('adminToggleBtn').addEventListener('click', () => {
-            const panel = document.getElementById('adminPanel');
-            panel.classList.toggle('show');
-            if (panel.classList.contains('show')) {
-                document.getElementById('adminStatus').textContent = 'geöffnet';
-            } else {
-                document.getElementById('adminStatus').textContent = 'inaktiv';
-                document.getElementById('adminContent').style.display = 'none';
-            }
-        });
-
-        document.getElementById('adminLoginBtn').addEventListener('click', () => {
-            const password = document.getElementById('adminPassword').value;
-            if (password === ADMIN_PASSWORD) {
-                isAdmin = true;
-                document.getElementById('adminContent').style.display = 'block';
-                document.getElementById('adminPassword').value = '';
-                document.getElementById('adminStatus').textContent = 'aktiv';
-                document.getElementById('adminToggleBtn').classList.add('admin-active');
-                loadBans();
-                addSystemMessage('Admin-Modus aktiviert');
-                document.querySelectorAll('.delete-btn').forEach(btn => btn.classList.remove('hidden'));
-            } else {
-                alert('Falsches Passwort!');
-                document.getElementById('adminPassword').value = '';
-            }
-        });
-
-        document.getElementById('banBtn').addEventListener('click', () => {
-            if (!isAdmin) { alert('Bitte zuerst als Admin anmelden.'); return; }
-            const name = document.getElementById('banInput').value.trim();
-            if (name) { banUser(name);
-                document.getElementById('banInput').value = ''; }
-        });
-        document.getElementById('banInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') document.getElementById('banBtn').click();
-        });
-
-        // ============================================================
-        // BELEIDIGUNGS-FILTER
-        // ============================================================
-        const badWords = [
-            'hure', 'fick', 'scheiße', 'schlampe', 'wichser', 'verpiss', 'leck mich',
-            'fuck', 'shit', 'bitch', 'asshole', 'cunt', 'dick', 'pussy', 'nigger',
-            'fotze', 'nutte', 'bastard', 'arschloch', 'hurensohn', 'verfickt',
-            'motherfucker', 'cock', 'penis', 'vagina', 'porn', 'sex', 'ficken',
-            'spasti', 'behindert', 'mongol', 'schwuchtel', 'fotzen', 'wixxer'
-        ];
-
-        function filterBadWords(text) {
-            const regex = new RegExp(badWords.join('|'), 'gi');
-            return text.replace(regex, (match) => '*'.repeat(match.length));
-        }
-
-        // ============================================================
-        // CHAT LOGIK
-        // ============================================================
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const chatUsernameInput = document.getElementById('chatUsernameInput');
-        const chatSendBtn = document.getElementById('chatSendBtn');
-        const chatStatusText = document.getElementById('chatStatusText');
-        const chatUserCount = document.getElementById('chatUserCount');
-        const chatConnectionStatus = document.getElementById('chatConnectionStatus');
-        const chatOnlineDot = document.getElementById('chatOnlineDot');
-        const chatNameStatus = document.getElementById('chatNameStatus');
-        const chatConnectionError = document.getElementById('chatConnectionError');
-
-        let isNameTaken = false;
-        let isNameChecking = false;
-        let chatLoaded = false;
-
-        const savedName = localStorage.getItem('mundangariaChatUser') || '';
-        if (savedName) chatUsernameInput.value = savedName;
-
-        async function checkAndReserveChatName(name) {
-            if (!name || name.trim() === '') {
-                chatNameStatus.textContent = 'Bitte gib einen Namen ein';
-                chatNameStatus.className = 'name-status taken';
-                isNameTaken = true;
-                updateChatState();
-                return false;
-            }
-            const trimmedName = name.trim();
-
-            if (isBanned(trimmedName)) {
-                chatNameStatus.textContent = `"${trimmedName}" ist gebannt!`;
-                chatNameStatus.className = 'name-status taken';
-                isNameTaken = true;
-                chatInput.disabled = true;
-                chatSendBtn.disabled = true;
-                updateChatState();
-                return false;
-            }
-
-            isNameChecking = true;
-            chatNameStatus.textContent = 'Name wird geprüft...';
-            chatNameStatus.className = 'name-status checking';
-            updateChatState();
-            try {
-                const snapshot = await database.ref('users').orderByChild('name').equalTo(trimmedName).once('value');
-                if (snapshot.exists()) {
-                    chatNameStatus.textContent = `"${trimmedName}" ist bereits vergeben`;
-                    chatNameStatus.className = 'name-status taken';
-                    isNameTaken = true;
-                    isNameChecking = false;
-                    updateChatState();
-                    return false;
-                }
-                chatNameStatus.textContent = `"${trimmedName}" ist verfügbar`;
-                chatNameStatus.className = 'name-status available';
-                isNameTaken = false;
-                isNameChecking = false;
-                updateChatState();
-                return true;
-            } catch (error) {
-                console.error('Fehler bei der Namensprüfung:', error);
-                chatNameStatus.textContent = 'Fehler bei der Namensprüfung';
-                chatNameStatus.className = 'name-status taken';
-                isNameChecking = false;
-                updateChatState();
-                return false;
-            }
-        }
-
-        function updateChatState() {
-            const name = chatUsernameInput.value.trim();
-            const canChat = !isNameTaken && !isNameChecking && name.length > 0 && !isBanned(name);
-            chatInput.disabled = !canChat;
-            chatSendBtn.disabled = !canChat;
-            if (isBanned(name)) {
-                chatInput.placeholder = 'Dieser Name ist gebannt!';
-            } else if (isNameTaken) {
-                chatInput.placeholder = 'Name bereits vergeben';
-            } else if (isNameChecking) {
-                chatInput.placeholder = 'Name wird geprüft...';
-            } else if (name.length === 0) {
-                chatInput.placeholder = 'Bitte gib zuerst einen Namen ein';
-            } else {
-                chatInput.placeholder = 'Nachricht...';
-            }
-        }
-
-        let nameCheckTimeout = null;
-        chatUsernameInput.addEventListener('input', function() {
-            const name = this.value.trim();
-
-            if (name && isBanned(name)) {
-                chatNameStatus.textContent = `"${name}" ist gebannt!`;
-                chatNameStatus.className = 'name-status taken';
-                isNameTaken = true;
-                chatInput.disabled = true;
-                chatSendBtn.disabled = true;
-                updateChatState();
-                return;
-            }
-
-            clearTimeout(nameCheckTimeout);
-            if (name.length === 0) {
-                chatNameStatus.textContent = 'Bitte gib einen Namen ein';
-                chatNameStatus.className = 'name-status taken';
-                isNameTaken = true;
-                updateChatState();
-                return;
-            }
-            nameCheckTimeout = setTimeout(() => {
-                checkAndReserveChatName(name);
-            }, 300);
-        });
-
-        function registerChatUser(name) {
-            if (isNameTaken || isNameChecking) return;
-            if (isBanned(name)) { addSystemMessage(`"${name}" ist gebannt!`); return; }
-            if (currentUserRef) { currentUserRef.remove();
-                currentUserRef = null; }
-            const newUserRef = database.ref('users').push();
-            newUserRef.set({ name: name.trim(), online: true, lastSeen: Date.now() });
-            newUserRef.onDisconnect().remove();
-            currentUser = name.trim();
-            currentUserRef = newUserRef;
-            localStorage.setItem('mundangariaChatUser', name.trim());
-            console.log(`${name} registriert`);
-        }
-
-        database.ref('chat').limitToLast(100).on('child_added', (snapshot) => {
-            const msg = snapshot.val();
-            const msgId = snapshot.key;
-            if (msg) {
-                appendChatMessage(msg, msgId);
-                if (!chatLoaded) {
-                    chatLoaded = true;
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            }
-        });
-
-        database.ref('chat').on('child_removed', (snapshot) => {
-            chatMessages.innerHTML = '';
-            database.ref('chat').limitToLast(100).once('value', (snap) => {
-                snap.forEach((child) => {
-                    const msg = child.val();
-                    const msgId = child.key;
-                    if (msg) appendChatMessage(msg, msgId);
-                });
-            });
-        });
-
-        function appendChatMessage(msg, msgId) {
-            const div = document.createElement('div');
-            const isBannedUser = isBanned(msg.user);
-            const isDeleted = msg.deleted === true;
-            div.className = 'msg';
-            if (isBannedUser) div.classList.add('banned-msg');
-            if (isDeleted) div.classList.add('deleted-msg');
-            const time = new Date(msg.time).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-            let content = '';
-            if (isDeleted) {
-                content = `<span style="opacity:0.4;">[Nachricht gelöscht]</span>`;
-            } else if (msg.type === 'draw') {
-                content = `
-              <span class="user" onclick="openUserMenu('${msg.user}')">${msg.user}</span>
-              <span class="draw-badge">Zeichnung</span>
-              <span class="time">${time}</span>
-              <div class="draw-preview" onclick="openDraw('${msg.imageData}')">
-                <img src="${msg.imageData}" alt="Zeichnung">
-              </div>
-            `;
-            } else {
-                const filtered = filterBadWords(msg.text || '');
-                content = `
-              <span class="user" onclick="openUserMenu('${msg.user}')">${msg.user}</span>
-              ${filtered}
-              <span class="time">${time}</span>
-              ${isBannedUser ? ' (gebannt)' : ''}
-            `;
-            }
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'msg-content';
-            contentDiv.innerHTML = content;
-            div.appendChild(contentDiv);
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'delete-btn' + (isAdmin ? '' : ' hidden');
-            deleteBtn.innerHTML = '✕';
-            deleteBtn.title = 'Nachricht löschen';
-            deleteBtn.onclick = () => deleteMessage(msgId);
-            div.appendChild(deleteBtn);
-            chatMessages.appendChild(div);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function addSystemMessage(text) {
-            const div = document.createElement('div');
-            div.className = 'msg system';
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'msg-content';
-            contentDiv.textContent = '✦ ' + text;
-            div.appendChild(contentDiv);
-            chatMessages.appendChild(div);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function openUserMenu(username) {
-            if (!isAdmin) { addSystemMessage('Nur Admins können Nutzer verwalten.'); return; }
-            if (isBanned(username)) {
-                if (confirm(`"${username}" entbannen?`)) { unbanUser(username); }
-            } else {
-                if (confirm(`"${username}" bannen? Der Nutzer kann dann weder chatten noch malen.`)) { banUser(username); }
-            }
-        }
-
-        function sendChatMessage() {
-            const text = chatInput.value.trim();
-            const user = chatUsernameInput.value.trim();
-            if (!text) return;
-
-            if (isBanned(user)) {
-                addSystemMessage(`"${user}" ist gebannt und kann nicht schreiben!`);
-                chatInput.value = '';
-                return;
-            }
-
-            if (isNameTaken || isNameChecking) {
-                addSystemMessage('Wähle zuerst einen verfügbaren Namen');
-                return;
-            }
-            if (!user) {
-                addSystemMessage('Bitte gib einen Namen ein');
-                return;
-            }
-
-            const msg = { user: user, text: filterBadWords(text), time: Date.now(), type: 'text' };
-            try {
-                database.ref('chat').push(msg);
-                chatInput.value = '';
-            } catch (e) {
-                console.error('Fehler beim Senden:', e);
-                addSystemMessage('Fehler beim Senden.');
-            }
-        }
-        chatSendBtn.addEventListener('click', sendChatMessage);
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !chatSendBtn.disabled) sendChatMessage();
-        });
-
-        database.ref('.info/connected').on('value', (snap) => {
-            if (snap.val() === true) {
-                chatConnectionStatus.textContent = 'Verbunden';
-                chatOnlineDot.className = 'online-dot';
-                chatConnectionError.classList.remove('show');
-                chatStatusText.textContent = 'live verbunden';
-                const name = chatUsernameInput.value.trim();
-                if (name && !isNameTaken && !isNameChecking && !isBanned(name)) { registerChatUser(name); }
-                database.ref('users').on('value', (snapshot) => {
-                    const count = snapshot.numChildren();
-                    chatUserCount.textContent = `${count} online`;
-                });
-            } else {
-                chatConnectionStatus.textContent = 'Offline';
-                chatOnlineDot.className = 'online-dot offline';
-                chatConnectionError.classList.add('show');
-                chatStatusText.textContent = 'offline - keine Verbindung';
-            }
-        });
-
-        // ============================================================
-        // CHAT ZEICHNEN
-        // ============================================================
-        const chatDrawCanvas = document.getElementById('chatDrawCanvas');
-        const chatDrawCtx = chatDrawCanvas.getContext('2d');
-        const chatDrawColor = document.getElementById('chatDrawColor');
-        const chatDrawSize = document.getElementById('chatDrawSize');
-        const clearChatDrawBtn = document.getElementById('clearChatDrawBtn');
-        const sendChatDrawBtn = document.getElementById('sendChatDrawBtn');
-
-        let chatDrawing = false;
-        let chatLastX, chatLastY;
-        let chatDrawHistory = [];
-        let chatCurrentPath = [];
-
-        function resizeChatDrawCanvas() {
-            const rect = chatDrawCanvas.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-                chatDrawCanvas.width = rect.width;
-                chatDrawCanvas.height = rect.height;
-                redrawChatDraw();
-            }
-        }
-
-        function redrawChatDraw() {
-            chatDrawCtx.clearRect(0, 0, chatDrawCanvas.width, chatDrawCanvas.height);
-            chatDrawHistory.forEach(path => {
-                if (path.length < 2) return;
-                chatDrawCtx.beginPath();
-                chatDrawCtx.moveTo(path[0].x, path[0].y);
-                for (let i = 1; i < path.length; i++) {
-                    chatDrawCtx.lineTo(path[i].x, path[i].y);
-                }
-                chatDrawCtx.strokeStyle = path[0].color || '#ffd966';
-                chatDrawCtx.lineWidth = path[0].size || 3;
-                chatDrawCtx.lineCap = 'round';
-                chatDrawCtx.lineJoin = 'round';
-                chatDrawCtx.stroke();
-            });
-        }
-
-        function getChatDrawPos(e) {
-            const rect = chatDrawCanvas.getBoundingClientRect();
-            const cx = e.touches ? e.touches[0].clientX : e.clientX;
-            const cy = e.touches ? e.touches[0].clientY : e.clientY;
-            return {
-                x: (cx - rect.left) * (chatDrawCanvas.width / rect.width),
-                y: (cy - rect.top) * (chatDrawCanvas.height / rect.height)
+            // Navigation
+            const navNames = {
+                navHome: d.navHome,
+                navAbout: d.navAbout,
+                navNews: d.navNews,
+                navLang: d.navLang,
+                navSettings: d.navSettings,
+                navCommunity: d.navCommunity
             };
+            for (let [id, txt] of Object.entries(navNames)) {
+                if (document.getElementById(id)) document.getElementById(id).innerText = txt;
+            }
+
+            document.getElementById("themeBtn").innerText = document.body.classList.contains("light") ? "☀️ Light Mode" :
+                "🌙 Dark Mode";
         }
-
-        function startChatDraw(e) {
-            e.preventDefault();
-            chatDrawing = true;
-            const pos = getChatDrawPos(e);
-            chatLastX = pos.x;
-            chatLastY = pos.y;
-            chatCurrentPath = [{ x: pos.x, y: pos.y, color: chatDrawColor.value, size: parseInt(chatDrawSize.value) }];
-        }
-
-        function drawChat(e) {
-            e.preventDefault();
-            if (!chatDrawing) return;
-            const pos = getChatDrawPos(e);
-            chatDrawCtx.beginPath();
-            chatDrawCtx.moveTo(chatLastX, chatLastY);
-            chatDrawCtx.lineTo(pos.x, pos.y);
-            chatDrawCtx.strokeStyle = chatDrawColor.value;
-            chatDrawCtx.lineWidth = parseInt(chatDrawSize.value);
-            chatDrawCtx.lineCap = 'round';
-            chatDrawCtx.lineJoin = 'round';
-            chatDrawCtx.stroke();
-            chatCurrentPath.push({ x: pos.x, y: pos.y, color: chatDrawColor.value, size: parseInt(chatDrawSize.value) });
-            chatLastX = pos.x;
-            chatLastY = pos.y;
-        }
-
-        function stopChatDraw(e) {
-            e.preventDefault();
-            if (chatDrawing && chatCurrentPath.length > 1) {
-                chatDrawHistory.push([...chatCurrentPath]);
-            }
-            chatDrawing = false;
-            chatCurrentPath = [];
-        }
-
-        chatDrawCanvas.addEventListener('mousedown', startChatDraw);
-        chatDrawCanvas.addEventListener('mousemove', drawChat);
-        chatDrawCanvas.addEventListener('mouseup', stopChatDraw);
-        chatDrawCanvas.addEventListener('mouseleave', stopChatDraw);
-        chatDrawCanvas.addEventListener('touchstart', startChatDraw, { passive: false });
-        chatDrawCanvas.addEventListener('touchmove', drawChat, { passive: false });
-        chatDrawCanvas.addEventListener('touchend', stopChatDraw, { passive: false });
-
-        clearChatDrawBtn.addEventListener('click', () => {
-            chatDrawHistory = [];
-            redrawChatDraw();
-        });
-
-        sendChatDrawBtn.addEventListener('click', () => {
-            if (chatDrawHistory.length === 0) {
-                addSystemMessage('Zeichne etwas, bevor du es sendest.');
-                return;
-            }
-            const user = chatUsernameInput.value.trim();
-
-            if (isBanned(user)) {
-                addSystemMessage(`"${user}" ist gebannt und kann nicht zeichnen!`);
-                chatDrawHistory = [];
-                redrawChatDraw();
-                return;
-            }
-
-            if (!user || isNameTaken || isNameChecking) {
-                addSystemMessage('Wähle zuerst einen verfügbaren Namen.');
-                return;
-            }
-
-            const imageData = chatDrawCanvas.toDataURL('image/png');
-            const msg = { user: user, time: Date.now(), type: 'draw', imageData: imageData };
-            try {
-                database.ref('chat').push(msg);
-                addSystemMessage('Zeichnung wurde gesendet!');
-                chatDrawHistory = [];
-                redrawChatDraw();
-            } catch (e) {
-                console.error('Fehler beim Senden der Zeichnung:', e);
-                addSystemMessage('Fehler beim Senden der Zeichnung.');
-            }
-        });
 
         // ============================================================
-        // PIXEL CANVAS
+        // THEME & MODE
         // ============================================================
-        const pixelCanvas = document.getElementById('pixelCanvas');
-        const canvasWrapper = document.getElementById('canvasWrapper');
-        const pixelColor = document.getElementById('pixelColor');
-        const clearCanvasBtn = document.getElementById('clearCanvasBtn');
-        const pixelCounterEl = document.getElementById('pixelCounter');
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const resetZoomBtn = document.getElementById('resetZoomBtn');
-        const zoomLevel = document.getElementById('zoomLevel');
-
-        const GRID_SIZE = 50;
-        let pixelData = {};
-        let pixelZoom = 1;
-        const MIN_ZOOM_PIXEL = 0.2;
-        const MAX_ZOOM_PIXEL = 8;
-
-        function updatePixelZoom() {
-            const zoomPercent = Math.round(pixelZoom * 100);
-            zoomLevel.textContent = zoomPercent + '%';
-            pixelCanvas.style.transform = `scale(${pixelZoom})`;
-            pixelCanvas.style.transformOrigin = '0 0';
+        function toggleTheme() {
+            document.body.classList.toggle("light");
+            const isLight = document.body.classList.contains("light");
+            document.getElementById("themeBtn").innerText = isLight ? "☀️ Light Mode" : "🌙 Dark Mode";
+            localStorage.setItem("theme", isLight ? "light" : "dark");
+            if (currentBgMode === 1) { stopCurrentAnimation();
+                startBackground1(); }
         }
 
-        function pixelZoomIn() {
-            if (pixelZoom < MAX_ZOOM_PIXEL) {
-                pixelZoom = Math.min(pixelZoom + 0.1, MAX_ZOOM_PIXEL);
-                updatePixelZoom();
-            }
-        }
-
-        function pixelZoomOut() {
-            if (pixelZoom > MIN_ZOOM_PIXEL) {
-                pixelZoom = Math.max(pixelZoom - 0.1, MIN_ZOOM_PIXEL);
-                updatePixelZoom();
-            }
-        }
-
-        function pixelResetZoom() {
-            pixelZoom = 1;
-            updatePixelZoom();
-            canvasWrapper.scrollTop = 0;
-            canvasWrapper.scrollLeft = 0;
-        }
-
-        zoomInBtn.addEventListener('click', pixelZoomIn);
-        zoomOutBtn.addEventListener('click', pixelZoomOut);
-        resetZoomBtn.addEventListener('click', pixelResetZoom);
-
-        function handlePixelInteraction(index) {
-            const name = chatUsernameInput.value.trim();
-
-            if (isBanned(name)) {
-                addSystemMessage(`"${name}" ist gebannt und kann nicht malen!`);
-                return;
-            }
-
-            if (!name || isNameTaken || isNameChecking) {
-                addSystemMessage('Wähle zuerst einen verfügbaren Namen');
-                return;
-            }
-            const color = pixelColor.value;
-            if (pixelData[index] === color) return;
-            pixelData[index] = color;
-            updatePixel(index);
-            database.ref('pixels/' + index).set(color);
-        }
-
-        function renderPixelCanvas() {
-            const pCanvas = document.getElementById('pixelCanvas');
-            pCanvas.innerHTML = '';
-
-            const totalPixels = GRID_SIZE * GRID_SIZE;
-            const wrapperWidth = canvasWrapper.clientWidth || 400;
-            const wrapperHeight = canvasWrapper.clientHeight || 400;
-
-            let baseSize = Math.min(
-                Math.floor((wrapperWidth - (GRID_SIZE + 1)) / GRID_SIZE),
-                Math.floor((wrapperHeight - (GRID_SIZE + 1)) / GRID_SIZE),
-                14
-            );
-            baseSize = Math.max(baseSize, 4);
-
-            pCanvas.style.gridTemplateColumns = `repeat(${GRID_SIZE}, ${baseSize}px)`;
-            pCanvas.style.gridTemplateRows = `repeat(${GRID_SIZE}, ${baseSize}px)`;
-            pCanvas.style.gap = '1px';
-            pCanvas.style.padding = '2px';
-
-            for (let i = 0; i < totalPixels; i++) {
-                const pixel = document.createElement('div');
-                pixel.className = 'pixel';
-                pixel.dataset.index = i;
-                pixel.style.width = baseSize + 'px';
-                pixel.style.height = baseSize + 'px';
-                pixel.style.background = pixelData[i] || 'white';
-                pixel.style.borderRadius = '0px';
-                pixel.style.flexShrink = '0';
-
-                pixel.addEventListener('mousedown', () => handlePixelInteraction(i));
-                pixel.addEventListener('mouseover', (e) => {
-                    if (e.buttons === 1) handlePixelInteraction(i);
-                });
-
-                pixel.addEventListener('touchstart', (e) => {
-                    e.preventDefault();
-                    handlePixelInteraction(i);
-                }, { passive: false });
-
-                pixel.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
-                    const touch = e.touches[0];
-                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-                    if (target && target.dataset && target.dataset.index !== undefined) {
-                        handlePixelInteraction(parseInt(target.dataset.index));
-                    }
-                }, { passive: false });
-
-                pCanvas.appendChild(pixel);
-            }
-
-            updatePixelCounter();
-            updatePixelZoom();
-        }
-
-        function updatePixel(index) {
-            const pixel = pixelCanvas.children[index];
-            if (pixel) { pixel.style.background = pixelData[index] || 'white'; }
-        }
-
-        function updatePixelCounter() {
-            const total = GRID_SIZE * GRID_SIZE;
-            const filled = Object.keys(pixelData).length;
-            pixelCounterEl.textContent = `${filled}/${total}`;
-        }
-
-        database.ref('pixels').on('child_added', (snapshot) => {
-            const index = parseInt(snapshot.key);
-            const color = snapshot.val();
-            if (!isNaN(index) && color) { pixelData[index] = color;
-                updatePixel(index);
-                updatePixelCounter(); }
-        });
-        database.ref('pixels').on('child_changed', (snapshot) => {
-            const index = parseInt(snapshot.key);
-            const color = snapshot.val();
-            if (!isNaN(index) && color) { pixelData[index] = color;
-                updatePixel(index);
-                updatePixelCounter(); }
-        });
-
-        clearCanvasBtn.addEventListener('click', () => {
-            if (!isAdmin) { addSystemMessage('Nur Admins können die Leinwand löschen.'); return; }
-            if (confirm('Alle Pixel löschen? Das kann nicht rückgängig gemacht werden!')) {
-                database.ref('pixels').remove().then(() => {
-                    pixelData = {};
-                    renderPixelCanvas();
-                    addSystemMessage('Leinwand wurde geleert.');
-                });
-            }
-        });
-
-        // ============================================================
-        // MODAL
-        // ============================================================
-        const modal = document.getElementById('imageModal');
-        const modalImage = document.getElementById('modalImage');
-        window.openDraw = function(imageData) {
-            modalImage.src = imageData;
-            modal.classList.add('active');
-        };
-        modal.addEventListener('click', () => { modal.classList.remove('active'); });
-
-        // ============================================================
-        // BANANA EASTER EGG
-        // ============================================================
-        let coatClickCount = 0;
-        let bananaActive = false;
-        let bananaTimeout = null;
-        const bananaOverlay = document.getElementById('bananaOverlay');
-        const bananaMessage = document.getElementById('bananaMessage');
-        const bananaMessageText = document.getElementById('bananaMessageText');
-
-        function createBananaParticles() {
-            const overlay = bananaOverlay;
-            const count = 20;
-            const emojis = ['🍌', '🍌', '🦧'];
-
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'banana-particle';
-                particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.top = '-10%';
-                particle.style.fontSize = (20 + Math.random() * 30) + 'px';
-                particle.style.animationDuration = (3 + Math.random() * 3) + 's';
-                particle.style.animationDelay = (Math.random() * 1) + 's';
-                overlay.appendChild(particle);
-
-                setTimeout(() => {
-                    if (particle.parentNode) particle.remove();
-                }, 6000);
-            }
-        }
-
-        function showBananaMessage(message) {
-            bananaMessageText.textContent = message || 'Hör auf, mich zu drücken!';
-            bananaMessage.classList.add('active');
-            if (bananaTimeout) clearTimeout(bananaTimeout);
-            bananaTimeout = setTimeout(() => {
-                bananaMessage.classList.remove('active');
-                bananaTimeout = null;
-            }, 3000);
-        }
-
-        function handleCoatClick() {
-            coatClickCount++;
-            if (coatClickCount === 5) {
-                bananaActive = true;
-                bananaOverlay.classList.add('active');
-                createBananaParticles();
-                showBananaMessage('BANANEN-ZEIT!');
-                if (window.bananaInterval) clearInterval(window.bananaInterval);
-                window.bananaInterval = setInterval(() => {
-                    if (bananaActive) createBananaParticles();
-                }, 4000);
-            }
-            if (coatClickCount === 10) {
-                createBananaParticles();
-                createBananaParticles();
-                showBananaMessage('BANANEN-REGEN!');
-            }
-            if (coatClickCount === 50) {
-                showBananaMessage('HÖR AUF, MICH ZU DRÜCKEN!');
-                for (let i = 0; i < 5; i++) setTimeout(() => createBananaParticles(), i * 500);
-                coatClickCount = 0;
-                bananaActive = false;
-                if (window.bananaInterval) {
-                    clearInterval(window.bananaInterval);
-                    window.bananaInterval = null;
-                }
-                setTimeout(() => {
-                    bananaOverlay.classList.remove('active');
-                    bananaOverlay.innerHTML = '';
-                }, 3000);
-            }
-            if (coatClickCount > 10 && coatClickCount < 50 && coatClickCount % 3 === 0) {
-                createBananaParticles();
-            }
+        function setMode(mode) {
+            localStorage.setItem("mode", mode);
+            document.body.classList.toggle("desktop-mode", mode === "desktop");
+            document.body.classList.toggle("mobile-mode", mode === "mobile");
+            if (mode === "auto") document.body.classList.remove("desktop-mode", "mobile-mode");
+            ["modeAutoBtn", "modeDesktopBtn", "modeMobileBtn"].forEach(id => document.getElementById(id)?.classList.remove(
+                "active"));
+            const activeMap = { auto: "modeAutoBtn", desktop: "modeDesktopBtn", mobile: "modeMobileBtn" };
+            document.getElementById(activeMap[mode])?.classList.add("active");
         }
 
         // ============================================================
         // INIT
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Seite geladen - starte Hintergrund...');
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedLang = localStorage.getItem("lang") || "de";
+            const savedTheme = localStorage.getItem("theme");
+            const savedMode = localStorage.getItem("mode") || "auto";
+            const savedBgMode = parseInt(localStorage.getItem("bgMode")) || 1;
 
-            // Hintergrund starten (Standard: Modus 1)
-            const savedBgMode = parseInt(localStorage.getItem('bgMode')) || 1;
-            currentBgMode = savedBgMode;
-            startBackground(savedBgMode);
-            console.log('Hintergrund gestartet, Modus:', savedBgMode);
-
-            // Theme
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'light') {
-                document.body.classList.add('light');
-                document.getElementById('themeBtn').innerText = 'Light Mode';
-            }
-            const savedMode = localStorage.getItem('mode') || 'auto';
-            setMode(savedMode);
-            const savedLang = localStorage.getItem('lang') || 'de';
+            if (savedTheme === "light") document.body.classList.add("light");
             setLang(savedLang);
+            setMode(savedMode);
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseleave', onMouseLeave);
+            flagImage = new Image();
+            flagImage.src = "https://cdn.micro.wiki/en/4/4c/Mundangaria.jpg";
+            setBackgroundMode(savedBgMode);
 
-            // Admin
             loadBans();
-
-            // Pixel & Chat Draw
             setTimeout(renderPixelCanvas, 300);
             setTimeout(resizeChatDrawCanvas, 300);
+            chatStatusText.textContent = '✦ ' + data[savedLang].wait;
 
-            // Wappen Easter Egg
             const coatImage = document.getElementById('coatOfArms');
             if (coatImage) {
                 coatImage.addEventListener('click', handleCoatClick);
                 coatImage.style.cursor = 'pointer';
+                coatImage.title = '🦧 Klicke mich... 50 mal für den Sound!';
             }
-
-            // Banana Overlay bei Navigation schließen
-            document.querySelectorAll('.nav button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (window.bananaInterval) {
-                        clearInterval(window.bananaInterval);
-                        window.bananaInterval = null;
-                    }
-                    bananaActive = false;
-                    bananaOverlay.classList.remove('active');
-                    bananaOverlay.innerHTML = '';
-                    bananaMessage.classList.remove('active');
-                });
-            });
-
-            // Maus-Events für Hintergrund
-            document.addEventListener('mousemove', function(e) {
-                bgMouseX = e.clientX;
-                bgMouseY = e.clientY;
-                bgMousePresent = true;
-            });
-            document.addEventListener('mouseleave', function() {
-                bgMousePresent = false;
-            });
-            window.addEventListener('resize', function() {
-                resizeBgCanvas();
-                if (currentBgMode === 1) {
-                    initBgParticles();
-                }
-            });
         });
     </script>
 </body>
