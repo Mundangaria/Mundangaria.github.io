@@ -6,6 +6,10 @@
 <meta content="Die Republik Mundangaria – eine muslimische Mikronation in Stuttgart, Deutschland. Gegründet 2025. Mit Community-Chat, PixelCanvas und mehr." name="description"/>
 <meta content="Mundangaria, Mikronation, Stuttgart, Islam, Republik, Sunland, Community" name="keywords"/>
 <title>Mundangaria · Mikronation</title>
+<meta content="#0a0a1a" name="theme-color"/>
+<meta content="Mundangaria · Mikronation" property="og:title"/>
+<meta content="Die Republik Mundangaria – eine muslimische Mikronation in Stuttgart." property="og:description"/>
+<link href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦧</text></svg>" rel="icon"/>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js">
@@ -1257,6 +1261,30 @@
                 padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
             }
         }
+
+        /* ===== VERBESSERUNGEN ===== */
+        .nav button.active { opacity: 1; background: rgba(255, 217, 102, 0.18); color: var(--accent); }
+        body.light .nav button.active { color: #8a6500; }
+        .nav button:focus-visible, .settingBtn:focus-visible, .infoLink:focus-visible,
+        .chat-input-row button:focus-visible, .tools button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent); outline-offset: 2px;
+        }
+        .msg .draw-preview img { margin: 0; max-height: none; border: 0; box-shadow: none; cursor: pointer; }
+        .canvas-wrapper { touch-action: pan-x pan-y pinch-zoom; cursor: default; }
+        #pixelCanvas { touch-action: pan-x pan-y pinch-zoom; width: max-content; }
+        .tools .clear-btn { display: none; }
+        #foundingCard { font-size: 1.05rem; }
+        body.light .chat-input-row input,
+        body.light .tools button,
+        body.light .chat-draw-area .draw-tools button,
+        body.light .admin-panel input { color: #111; }
+        body.light .chat-input-row input::placeholder { color: rgba(0, 0, 0, 0.4); }
+        body.light #chatMessages { background: rgba(255, 255, 255, 0.6); }
+        body.light .msg .user, body.light .chat-panel-title, body.light .admin-panel h4 { color: #8a6500; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+            .card:hover { transform: none; }
+        }
 </style>
 </head>
 <body>
@@ -1559,7 +1587,8 @@
         } catch (e) {
             console.error('Firebase Init Fehler:', e);
         }
-        const database = firebase.database();
+        let database = null;
+        try { database = firebase.database(); } catch (e) { console.error('Firebase nicht verfügbar:', e); }
 
         // ============================================================
         // PARTIKEL-HINTERGRUND
@@ -1770,20 +1799,28 @@
         // ============================================================
         // FUNKTIONEN
         // ============================================================
-        function openPage(id) {
+        function openPage(id, push = true) {
+            if (!document.getElementById(id)) id = 'home';
             document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
             document.getElementById(id).classList.add("active");
+            document.querySelectorAll('.nav button').forEach(btn => {
+                const on = btn.getAttribute('onclick') === "openPage('" + id + "')";
+                btn.classList.toggle('active', on);
+                if (on) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+            });
+            if (push && location.hash !== '#' + id) { try { history.pushState(null, '', '#' + id); } catch (e) {} }
             window.scrollTo({ top: 0, behavior: "smooth" });
             if (id === 'community') {
                 setTimeout(renderPixelCanvas, 300);
                 setTimeout(resizeChatDrawCanvas, 300);
             }
         }
+        window.addEventListener('popstate', () => openPage(location.hash.slice(1) || 'home', false));
 
         function toggleTheme() {
             document.body.classList.toggle("light");
             const isLight = document.body.classList.contains("light");
-            document.getElementById("themeBtn").innerText = isLight ? "Light Mode" : "Dark Mode";
+            document.getElementById("themeBtn").innerText = isLight ? "☀️ Light Mode" : "🌙 Dark Mode";
             localStorage.setItem("theme", isLight ? "light" : "dark");
             startBackground(currentBgMode);
         }
@@ -2337,19 +2374,264 @@
         // ============================================================
         // CHAT & PIXEL PLACEHOLDER FUNKTIONEN
         // ============================================================
-        function renderPixelCanvas() {
-            // Pixel Canvas Initialisierung - Platzhalter
-        }
-
-        function resizeChatDrawCanvas() {
-            // Chat Draw Canvas Grösse anpassen - Platzhalter
-        }
-
-        function loadBans() {
-            // Bans aus Firebase laden - Platzhalter
-        }
-
         let chatStatusText = document.getElementById('chatStatusText');
+
+        // ============================================================
+        // COMMUNITY: Chat, PixelPlace, Zeichnen, Bans (Firebase)
+        // ============================================================
+        // Admin-Passwort als SHA-256-Hash eintragen (leer = Admin deaktiviert).
+        // Hash erzeugen (Browser-Konsole):
+        // crypto.subtle.digest('SHA-256', new TextEncoder().encode('PASSWORT')).then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')))
+        const ADMIN_HASH = '';
+        const PIXEL_N = 40, MSG_LIMIT = 100;
+        const $id = id => document.getElementById(id);
+        const cid = localStorage.getItem('cid') || (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
+        localStorage.setItem('cid', cid);
+        let chatName = '', isAdmin = false, bans = {}, zoom = 1, lastSend = 0, lastPixel = 0, online = false, flashTimer = null;
+        const pixels = {};
+        const curLang = () => localStorage.getItem('lang') || 'de';
+        const tx = k => (data[curLang()] && data[curLang()][k]) || data.de[k] || '';
+        const T = {
+            de: { nameBad: '2–16 Zeichen: Buchstaben, Zahlen, _ - Leerzeichen', nameTaken: 'Name ist vergeben', nameOk: 'Angemeldet als', banned: 'Du wurdest gebannt', slow: 'Nicht so schnell …', needName: 'Wähle zuerst einen Namen', noConn: 'Keine Verbindung', adminOff: 'Admin nicht konfiguriert', wrongPw: 'Falsches Passwort', active: 'aktiv', clear: 'Gesamte Zeichenfläche leeren?', days: n => `🗓️ Mundangaria besteht seit <b>${n}</b> Tagen` },
+            en: { nameBad: '2–16 characters: letters, numbers, _ - space', nameTaken: 'Name already taken', nameOk: 'Signed in as', banned: 'You have been banned', slow: 'Slow down …', needName: 'Choose a name first', noConn: 'No connection', adminOff: 'Admin not configured', wrongPw: 'Wrong password', active: 'active', clear: 'Clear the whole canvas?', days: n => `🗓️ Mundangaria has existed for <b>${n}</b> days` },
+            tr: { days: n => `🗓️ Mundangaria <b>${n}</b> gündür var` },
+            bs: { days: n => `🗓️ Mundangaria postoji već <b>${n}</b> dana` },
+            ar: { days: n => `🗓️ تأسست موندانغاريا منذ <b>${n}</b> يومًا` }
+        };
+        const t = k => (T[curLang()] && T[curLang()][k]) || T.en[k] || T.de[k];
+        const isBanned = n => !!(n && bans[n.toLowerCase()]);
+        const flash = msg => {
+            const el = $id('chatStatusText');
+            el.textContent = '✦ ' + msg;
+            clearTimeout(flashTimer);
+            flashTimer = setTimeout(() => setStatus(online), 3000);
+        };
+        function setStatus(ok) {
+            $id('chatOnlineDot').classList.toggle('offline', !ok);
+            $id('chatConnectionStatus').textContent = ok ? tx('connected') : tx('connecting');
+            $id('chatStatusText').textContent = '✦ ' + (ok ? tx('connected') : tx('wait'));
+        }
+        const canAct = () => {
+            if (!database || !online) { flash(t('noConn')); return false; }
+            if (!chatName) { flash(t('needName')); return false; }
+            if (isBanned(chatName)) { flash(t('banned')); return false; }
+            return true;
+        };
+
+        // ---------- Name ----------
+        async function claimName(raw) {
+            const name = raw.trim(), st = $id('chatNameStatus'), inp = $id('chatUsernameInput');
+            const fail = msg => { st.textContent = msg; st.className = 'name-status taken'; inp.classList.add('error'); return false; };
+            inp.classList.remove('error');
+            if (!/^[\p{L}\p{N}_ -]{2,16}$/u.test(name)) return fail(t('nameBad'));
+            if (isBanned(name)) return fail(t('banned'));
+            if (!database || !online) return fail(t('noConn'));
+            const res = await database.ref('names/' + name.toLowerCase()).transaction(cur => (cur === null || cur === cid) ? cid : undefined);
+            if (!res.committed) return fail(t('nameTaken'));
+            chatName = name;
+            localStorage.setItem('chatName', name);
+            st.textContent = '✓ ' + t('nameOk') + ' ' + name;
+            st.className = 'name-status available';
+            $id('chatInput').disabled = false;
+            $id('chatSendBtn').disabled = false;
+            return true;
+        }
+
+        // ---------- Chat ----------
+        function addMsg(key, m) {
+            if ($id('m_' + key)) return;
+            const el = document.createElement('div'), c = document.createElement('div'), u = document.createElement('span');
+            el.className = 'msg'; el.id = 'm_' + key; c.className = 'msg-content'; u.className = 'user';
+            u.textContent = String(m.name || '?').slice(0, 16);
+            u.onclick = () => { if (isAdmin) $id('banInput').value = m.name; else $id('chatInput').focus(); };
+            c.appendChild(u);
+            if (typeof m.img === 'string' && /^data:image\/png;base64,/.test(m.img)) {
+                const b = document.createElement('span'), p = document.createElement('div'), im = document.createElement('img');
+                b.className = 'draw-badge'; b.textContent = '✏️';
+                p.className = 'draw-preview'; im.src = m.img; im.alt = 'Zeichnung';
+                p.onclick = () => { $id('modalImage').src = m.img; $id('imageModal').classList.add('active'); };
+                p.appendChild(im); c.append(b, p);
+            } else {
+                c.appendChild(document.createTextNode(String(m.text || '').slice(0, 500)));
+            }
+            const tm = document.createElement('span');
+            tm.className = 'time';
+            tm.textContent = m.ts ? new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            c.appendChild(tm);
+            const d = document.createElement('button');
+            d.className = 'delete-btn' + (isAdmin ? '' : ' hidden'); d.textContent = '✕'; d.title = 'Löschen';
+            d.onclick = () => database.ref('chat/messages/' + key).remove();
+            el.append(c, d);
+            const box = $id('chatMessages'), stick = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+            box.appendChild(el);
+            if (stick) box.scrollTop = box.scrollHeight;
+        }
+        function pushMsg(payload) {
+            if (!canAct()) return false;
+            const n = Date.now();
+            if (n - lastSend < 1200) { flash(t('slow')); return false; }
+            lastSend = n;
+            database.ref('chat/messages').push(Object.assign({ name: chatName, cid, ts: firebase.database.ServerValue.TIMESTAMP }, payload));
+            return true;
+        }
+        function sendMsg() {
+            const inp = $id('chatInput'), text = inp.value.trim();
+            if (text && pushMsg({ text: text.slice(0, 500) })) inp.value = '';
+        }
+
+        // ---------- Zeichnen im Chat ----------
+        function resizeChatDrawCanvas() {
+            const c = $id('chatDrawCanvas');
+            if (c.dataset.ready) return;
+            c.width = 600; c.height = 300; c.dataset.ready = '1';
+            clearDraw();
+        }
+        function clearDraw() {
+            const c = $id('chatDrawCanvas'), x = c.getContext('2d');
+            x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+        }
+        function initChatDraw() {
+            const c = $id('chatDrawCanvas'), x = c.getContext('2d');
+            let drawing = false, last = null;
+            const pos = e => { const r = c.getBoundingClientRect(); return { x: (e.clientX - r.left) * c.width / r.width, y: (e.clientY - r.top) * c.height / r.height }; };
+            c.addEventListener('pointerdown', e => { drawing = true; last = pos(e); c.setPointerCapture(e.pointerId); stroke(last, last); });
+            c.addEventListener('pointermove', e => { if (!drawing) return; const p = pos(e); stroke(last, p); last = p; });
+            ['pointerup', 'pointercancel'].forEach(ev => c.addEventListener(ev, () => { drawing = false; }));
+            function stroke(a, b) {
+                x.strokeStyle = $id('chatDrawColor').value; x.lineWidth = $id('chatDrawSize').value * 2; x.lineCap = x.lineJoin = 'round';
+                x.beginPath(); x.moveTo(a.x, a.y); x.lineTo(b.x, b.y); x.stroke();
+            }
+            $id('clearChatDrawBtn').onclick = clearDraw;
+            $id('sendChatDrawBtn').onclick = () => { if (pushMsg({ img: c.toDataURL('image/png') })) clearDraw(); };
+        }
+
+        // ---------- PixelPlace ----------
+        const cellSize = () => Math.round(10 * zoom);
+        function applyZoom() {
+            const g = $id('pixelCanvas');
+            g.style.gridTemplateColumns = `repeat(${PIXEL_N}, ${cellSize()}px)`;
+            g.style.gridAutoRows = cellSize() + 'px';
+            $id('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+        }
+        function renderPixelCanvas() {
+            const g = $id('pixelCanvas');
+            if (g.children.length) return;
+            const f = document.createDocumentFragment();
+            for (let i = 0; i < PIXEL_N * PIXEL_N; i++) { const d = document.createElement('div'); d.className = 'pixel'; f.appendChild(d); }
+            g.appendChild(f);
+            applyZoom();
+        }
+        function paintAt(e) {
+            const g = $id('pixelCanvas'), r = g.getBoundingClientRect(), s = cellSize() + 1;
+            const x = Math.floor((e.clientX - r.left - 2) / s), y = Math.floor((e.clientY - r.top - 2) / s);
+            if (x < 0 || y < 0 || x >= PIXEL_N || y >= PIXEL_N) return;
+            const col = $id('pixelColor').value, now = Date.now();
+            if (pixels[x + '_' + y] === col || now - lastPixel < 100 || !canAct()) return;
+            lastPixel = now;
+            database.ref('pixels/' + x + '_' + y).set(col);
+        }
+        function initPixels() {
+            const g = $id('pixelCanvas'); let down = false, start = null;
+            g.addEventListener('pointerdown', e => { if (e.pointerType === 'touch') { start = { x: e.clientX, y: e.clientY }; return; } down = true; paintAt(e); });
+            g.addEventListener('pointermove', e => { if (down && e.pointerType !== 'touch') paintAt(e); });
+            g.addEventListener('pointerup', e => { down = false; if (e.pointerType === 'touch' && start && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 8) paintAt(e); start = null; });
+            addEventListener('pointerup', () => { down = false; });
+            $id('zoomInBtn').onclick = () => { zoom = Math.min(4, zoom + 0.25); applyZoom(); };
+            $id('zoomOutBtn').onclick = () => { zoom = Math.max(0.5, zoom - 0.25); applyZoom(); };
+            $id('resetZoomBtn').onclick = () => { zoom = 1; applyZoom(); };
+            $id('clearCanvasBtn').onclick = () => { if (isAdmin && confirm(t('clear'))) database.ref('pixels').remove(); };
+            if (!database) return;
+            const ref = database.ref('pixels'), count = () => { $id('pixelCounter').textContent = Object.keys(pixels).length + ' Pixel'; };
+            const cell = k => { const [x, y] = k.split('_').map(Number); return g.children[y * PIXEL_N + x]; };
+            const upd = s => { const c = cell(s.key), v = s.val(); if (c && /^#[0-9a-f]{6}$/i.test(v)) { c.style.background = v; pixels[s.key] = v; count(); } };
+            ref.on('child_added', upd); ref.on('child_changed', upd);
+            ref.on('child_removed', s => { const c = cell(s.key); if (c) c.style.background = ''; delete pixels[s.key]; count(); });
+        }
+
+        // ---------- Admin & Bans ----------
+        function renderBans() {
+            const ul = $id('banList'); ul.textContent = '';
+            Object.entries(bans).forEach(([k, name]) => {
+                const li = document.createElement('li'), s = document.createElement('span'), b = document.createElement('button');
+                s.textContent = name; b.className = 'unban-btn'; b.textContent = 'Unban';
+                b.onclick = () => database.ref('bans/' + k).remove();
+                li.append(s, b); ul.appendChild(li);
+            });
+        }
+        function loadBans() {
+            if (!database || loadBans.done) return;
+            loadBans.done = true;
+            database.ref('bans').on('value', s => { bans = s.val() || {}; renderBans(); });
+        }
+        function setAdmin(v) {
+            isAdmin = v;
+            $id('adminContent').style.display = v ? 'block' : 'none';
+            $id('adminStatus').textContent = v ? t('active') : tx('adminInactive');
+            $id('adminToggleBtn').classList.toggle('admin-active', v);
+            $id('clearCanvasBtn').style.display = v ? 'inline-block' : 'none';
+            document.querySelectorAll('.msg .delete-btn').forEach(b => b.classList.toggle('hidden', !v));
+        }
+        async function sha256(s) {
+            const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+            return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+        }
+
+        // ---------- Extra: Tage seit Gründung ----------
+        function foundingCard() {
+            const home = $id('home'), first = home && home.querySelector('.card');
+            if (!first) return;
+            let el = $id('foundingCard');
+            if (!el) { el = document.createElement('div'); el.className = 'card'; el.id = 'foundingCard'; el.style.textAlign = 'center'; first.after(el); }
+            const days = Math.max(0, Math.floor((Date.now() - Date.UTC(2025, 8, 10)) / 864e5));
+            el.innerHTML = (T[curLang()] || T.de).days(days);
+        }
+        function refreshCommunityTexts() {
+            setStatus(online); setAdmin(isAdmin); foundingCard();
+            if (chatName) { const st = $id('chatNameStatus'); st.textContent = '✓ ' + t('nameOk') + ' ' + chatName; st.className = 'name-status available'; }
+        }
+        const _setLang = setLang;
+        setLang = function (l) { _setLang(l); refreshCommunityTexts(); };
+
+        function initCommunity() {
+            renderPixelCanvas(); resizeChatDrawCanvas(); initChatDraw(); initPixels(); foundingCard();
+            $id('chatSendBtn').onclick = sendMsg;
+            $id('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+            const ni = $id('chatUsernameInput');
+            ni.addEventListener('keydown', e => { if (e.key === 'Enter') claimName(ni.value); });
+            ni.addEventListener('change', () => claimName(ni.value));
+            $id('imageModal').addEventListener('click', () => $id('imageModal').classList.remove('active'));
+            $id('adminToggleBtn').onclick = () => $id('adminPanel').classList.toggle('show');
+            $id('adminLoginBtn').onclick = async () => {
+                if (!ADMIN_HASH || !(crypto.subtle)) return flash(t('adminOff'));
+                if (await sha256($id('adminPassword').value) === ADMIN_HASH) { setAdmin(true); $id('adminPassword').value = ''; } else flash(t('wrongPw'));
+            };
+            $id('banBtn').onclick = () => {
+                const n = $id('banInput').value.trim();
+                if (isAdmin && n && /^[\p{L}\p{N}_ -]{2,20}$/u.test(n)) { database.ref('bans/' + n.toLowerCase()).set(n); $id('banInput').value = ''; }
+            };
+            if (!database) { $id('chatConnectionError').classList.add('show'); return; }
+            loadBans();
+            database.ref('chat/messages').limitToLast(MSG_LIMIT).on('child_added', s => addMsg(s.key, s.val()));
+            database.ref('chat/messages').on('child_removed', s => $id('m_' + s.key)?.remove());
+            database.ref('presence').on('value', s => { $id('chatUserCount').textContent = s.numChildren() + ' online'; });
+            database.ref('.info/connected').on('value', s => {
+                online = !!s.val(); setStatus(online);
+                if (online) {
+                    const p = database.ref('presence/' + cid); p.onDisconnect().remove(); p.set(true);
+                    const saved = localStorage.getItem('chatName');
+                    if (saved && !chatName) { $id('chatUsernameInput').value = saved; claimName(saved); }
+                }
+            });
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initCommunity();
+            const h = location.hash.slice(1);
+            if (h && $id(h) && $id(h).classList.contains('page')) openPage(h, false);
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { cancelAnimationFrame(bgAnimationId); bgAnimationId = null; }
+            else if (!bgAnimationId) startBackground(currentBgMode);
+        });
 
         // ============================================================
         // INIT
