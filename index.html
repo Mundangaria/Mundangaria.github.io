@@ -2382,7 +2382,7 @@
         // Admin-Passwort als SHA-256-Hash eintragen (leer = Admin deaktiviert).
         // Hash erzeugen (Browser-Konsole):
         // crypto.subtle.digest('SHA-256', new TextEncoder().encode('PASSWORT')).then(b => console.log([...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')))
-        const ADMIN_HASH = '';
+        const ADMIN_HASH = 'b838f5e640f108e4f3b938abe441ca2e12ff27babf56e65c7e7a52cd6a5f435d';
         const PIXEL_N = 40, MSG_LIMIT = 100;
         const $id = id => document.getElementById(id);
         const cid = localStorage.getItem('cid') || (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
